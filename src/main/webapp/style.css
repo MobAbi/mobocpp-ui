@@ -1,0 +1,10 @@
+body {
+	background-color: lightblue;
+}
+
+h1 {
+	color: navy;
+	margin-left: 20px;
+}
+
+#map { width: 1280px; height: 1024px; }
