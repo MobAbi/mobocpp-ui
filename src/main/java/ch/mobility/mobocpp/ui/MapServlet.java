@@ -124,9 +124,11 @@ public class MapServlet extends HttpServlet {
         }
 
         response.setContentType("text/html;");
+        response.getWriter().println("<!DOCTYPE html>");
         response.getWriter().println("<html>");
         response.getWriter().println(getHead());
         response.getWriter().println("<body>");
+
         response.getWriter().println("<div id=\"map\"></div>");
         if (!keineStammdaten.isEmpty()) {
             response.getWriter().println("<br>Zu folgenden Ladestationen fehlen Stammdaten:");
@@ -136,6 +138,12 @@ public class MapServlet extends HttpServlet {
             response.getWriter().println("<br>");
         }
         response.getWriter().println("<script>");
+
+        // !!!! Hier gehts weiter: Ausprobieren ob das funktioniert !!!!
+        response.getWriter().println("function clickOnMarker(e){\n" +
+                "console.log(e)\n" +
+                "}");
+
         response.getWriter().println(getJScriptMap());
 
         int counter = 0;
@@ -235,6 +243,21 @@ public class MapServlet extends HttpServlet {
         return result;
     }
 
+    private String getJScriptCircle2(int counter, String coordinates, String color, String bezeichnung) {
+        String result =
+                "    var circle" + counter + " = L.circleMarker([" + coordinates + "], {\n" +
+                        "        color: 'black',\n" +
+                        //"        color: '" + color + "',\n" +
+                        "        fillColor: '" + color + "',\n" +
+                        "        fillOpacity: 0.5,\n" +
+                        "        radius: 7\n" +
+                        "    }).addTo(map);\n" +
+                        "    circle" + counter + ".on('click', clickOnMarker);" +
+                        "    circle" + counter + ".bindPopup(\"" + bezeichnung + "\");";
+        System.out.println("getJScriptCircle: " + result);
+        return result;
+    }
+
     private String getHead() {
         return "<head>\n" +
                 "    <title>MobOCPP UI</title>\n" +
@@ -245,7 +268,7 @@ public class MapServlet extends HttpServlet {
                 "            integrity=\"sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==\"\n" +
                 "            crossorigin=\"\">\n" +
                 "    </script>\n" +
-                "    <link rel=\"stylesheet\" href=\"style.css\">\n" +
+                "    <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">\n" +
                 "</head>";
     }
 

@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @WebServlet("/cs")
 public class ChargestationServlet extends HttpServlet {
@@ -48,18 +47,21 @@ public class ChargestationServlet extends HttpServlet {
 
         response.setContentType("text/html;");
         response.getWriter().println("<html>");
-        response.getWriter().println(getHead());
-        response.getWriter().println("<body>");
-        for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
-            String value = "";
-            for (String s : entry.getValue()) {
-                value += s + ",";
-            }
+
+//        for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+//            String value = "";
+//            for (String s : entry.getValue()) {
+//                value += s + ",";
+//            }
 //            response.getWriter().println("Entry '" + entry.getKey() + "': '" + value + "'");
-        }
+//        }
         final String[] csArray = request.getParameterMap().get("cs");
         if (csArray != null && csArray.length > 0) {
             String csId = csArray[0];
+
+            response.getWriter().println(getHead(csId));
+            response.getWriter().println("<body>");
+
             getAvroProducer().requestStatusForId(csId, null, 10);
             List<CSStatusForIdResponse> receiveDetail = getAvroConsumer().receive(CSStatusForIdResponse.class, 3000, 1);
             if (receiveDetail.size() != 1) {
@@ -114,6 +116,9 @@ public class ChargestationServlet extends HttpServlet {
                     response.getWriter().println("<hr>");
                 }
             }
+        } else {
+            response.getWriter().println(getHead("Unknown"));
+            response.getWriter().println("<body>");
         }
 
         response.getWriter().println("<br><a href=map>Back to map</a>");
@@ -130,9 +135,9 @@ public class ChargestationServlet extends HttpServlet {
         return null;
     }
 
-    private String getHead() {
+    private String getHead(String csId) {
         return "<head>\n" +
-//                "    <title>MobOCPP UI</title>\n" +
+                "    <title>MobOCPP UI - Chargingstation " + csId + "</title>\n" +
 //                "    <link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@1.7.1/dist/leaflet.css\"\n" +
 //                "          integrity=\"sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==\"\n" +
 //                "          crossorigin=\"\"/>\n" +
@@ -140,7 +145,7 @@ public class ChargestationServlet extends HttpServlet {
 //                "            integrity=\"sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==\"\n" +
 //                "            crossorigin=\"\">\n" +
 //                "    </script>\n" +
-//                "    <link rel=\"stylesheet\" href=\"style.css\">\n" +
+                "    <link rel=\"stylesheet\" href=\"style.css\">\n" +
                 "</head>";
     }
 
