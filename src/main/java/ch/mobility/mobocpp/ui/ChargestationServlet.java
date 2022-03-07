@@ -129,7 +129,7 @@ public class ChargestationServlet extends HttpServlet {
     }
 
     private String getErrorString(CPStatusHistoryEntry historyEntry) {
-        if (!str(historyEntry.getErrorCode()).equalsIgnoreCase("NoError")) {
+        if (!historyEntry.getErrorCode().equalsIgnoreCase("NoError")) {
             return "Error: " + historyEntry.getErrorCode() + "=" + historyEntry.getErrorInfo();
         }
         return null;
@@ -147,12 +147,5 @@ public class ChargestationServlet extends HttpServlet {
 //                "    </script>\n" +
                 "    <link rel=\"stylesheet\" href=\"style.css\">\n" +
                 "</head>";
-    }
-
-    private static String str(CharSequence c) {
-        if (c != null) {
-            return String.valueOf(c);
-        }
-        return null;
     }
 }

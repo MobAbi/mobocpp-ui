@@ -129,6 +129,13 @@ public class MapServlet extends HttpServlet {
         response.getWriter().println(getHead());
         response.getWriter().println("<body>");
 
+        response.getWriter().println("<div id=\"csModal\" class=\"modal\">");
+        response.getWriter().println(" <div id=\"csModalContent\" class=\"modal-content\">");
+        response.getWriter().println("  <span class=\"close\">&times;</span>");
+        response.getWriter().println("  <p>Some text in the Modal..0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789</p>");
+        response.getWriter().println(" </div>");
+        response.getWriter().println("</div>");
+
         response.getWriter().println("<div id=\"map\"></div>");
         if (!keineStammdaten.isEmpty()) {
             response.getWriter().println("<br>Zu folgenden Ladestationen fehlen Stammdaten:");
@@ -140,9 +147,90 @@ public class MapServlet extends HttpServlet {
         response.getWriter().println("<script>");
 
         // !!!! Hier gehts weiter: Ausprobieren ob das funktioniert !!!!
-        response.getWriter().println("function clickOnMarker(e){\n" +
-                "console.log(e)\n" +
+
+
+        response.getWriter().println("var modal = document.getElementById(\"csModal\");");
+//        response.getWriter().println("var btn = document.getElementById(\"myBtn\");\n");
+        response.getWriter().println("var span = document.getElementsByClassName(\"close\")[0];");
+
+//        response.getWriter().println("async function clickOnMarker(e){\n" +
+//                "const response = await fetch('csJ?cs=JC310001');\n" +
+//                "console.log('Response !!! ', response);\n" +
+//                "console.log('Data !!! ', response.data);\n" +
+//                "console.log('JSON !!! ', await response.json());\n" +
+//                "  var modalContent = document.getElementById(\"csModalContent\");\n" +
+//                "  modalContent.innerHTML = '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789 changed1';\n" +
+//                "  modal.style.display = \"block\";\n" +
+//                "  map.display = \"none\";\n" +
+//                "}");
+
+//        response.getWriter().println("async function clickOnMarker2(value){\n" +
+//                "const response = await fetch('csJ?cs=value');\n" +
+//                "console.log('Response !!! ', response);\n" +
+//                "console.log('Data !!! ', response.data);\n" +
+//                "console.log('JSON !!! ', await response.json());\n" +
+//                "  var modalContent = document.getElementById(\"csModalContent\");\n" +
+//                "  modalContent.innerHTML = '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789 changed1';\n" +
+//                "  modal.style.display = \"block\";\n" +
+//                "  map.display = \"none\";\n" +
+//                "}");
+
+        response.getWriter().println("async function showCS(circle, value) {\n" +
+//                "   console.log('showCS: ', circle, value);\n" +
+                "   var popup = circle.getPopup();\n" +
+                "   const url = 'csJ?cs=' + value;\n" +
+
+                "   const response = await fetch(url);\n" +
+                "   const jsonResult = await response.json();\n" +
+                "   console.log('JSONResult: ', jsonResult);\n" +
+
+                "   if (jsonResult.Status !== undefined) {\n" +
+                "    console.log('jsonResult.Status: ', jsonResult.Status);\n" +
+                "    const oldContent = popup.getContent();\n" +
+                "    let newContent = oldContent + '<br><hr>';\n" +
+                "    newContent +=  'BackendStatus: ' + jsonResult.Status.BackendStatus + '<br>';\n" +
+                "    newContent +=  'Vendor: ' + jsonResult.Status.Vendor + '<br>';\n" +
+                "    newContent +=  'Model: ' + jsonResult.Status.Model + '<br>';\n" +
+                "    newContent +=  'FW-Version: ' + jsonResult.Status.Firmwareversion + '<br>';\n" +
+                "    newContent +=  'OCPPVersion: ' + jsonResult.Status.OCPPVersion + '<br>';\n" +
+                "    newContent +=  'FirstContact: ' + jsonResult.Status.FirstContact + '<br>';\n" +
+                "    newContent +=  'LastContact: ' + jsonResult.Status.LastContact + '<br>';\n" +
+                "    newContent +=  'IPAddress: ' + jsonResult.Status.IPAddress + '<br>';\n" +
+                "    newContent +=  '<br>';\n" +
+
+                "    for (index = 0; index < jsonResult.Status.CPStatusList.length; index++) {" +
+                "      newContent +=  'ConnectorId: ' + jsonResult.Status.CPStatusList[index].ConnectorId + '<br>';\n" +
+                "      newContent +=  'ConnectorStatus: ' + jsonResult.Status.CPStatusList[index].ConnectorStatus + '<br>';\n" +
+                "      newContent +=  'ChargingState: ' + jsonResult.Status.CPStatusList[index].ChargingState + '<br>';\n" +
+                "      newContent +=  'CurrentChargedEnergy: ' + jsonResult.Status.CPStatusList[index].CurrentChargedEnergy + '<br>';\n" +
+                "      newContent +=  'CurrentChargingAmpere: ' + jsonResult.Status.CPStatusList[index].CurrentChargingAmpere + '<br>';\n" +
+                "      newContent +=  'ErrorCode: ' + jsonResult.Status.CPStatusList[index].ErrorCode + '<br>';\n" +
+                "      newContent +=  'ErrorInfo: ' + jsonResult.Status.CPStatusList[index].ErrorInfo + '<br><br>';\n" +
+                "    }" +
+
+                "    popup.setContent(newContent);" +
+                "    popup.update();" +
+                "   }" +
+
+//                "  var modalContent = document.getElementById(\"csModalContent\");\n" +
+//                "  modalContent.innerHTML = '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789 changed1';\n" +
+//                "  modal.style.display = \"block\";\n" +
+//                "  map.display = \"none\";\n" +
                 "}");
+
+//        response.getWriter().println("btn.onclick = function() {");
+//        response.getWriter().println("  modal.style.display = \"block\";");
+//        response.getWriter().println("}");
+        response.getWriter().println("span.onclick = function() {");
+        response.getWriter().println("  modal.style.display = \"none\";");
+        response.getWriter().println("  map.display = \"inline\";");
+        response.getWriter().println("}");
+        response.getWriter().println("window.onclick = function(event) {");
+        response.getWriter().println("  if (event.target == modal) {");
+        response.getWriter().println("    modal.style.display = \"none\";");
+        response.getWriter().println("    map.display = \"inline\";");
+        response.getWriter().println("  }");
+        response.getWriter().println("}");
 
         response.getWriter().println(getJScriptMap());
 
@@ -151,11 +239,18 @@ public class MapServlet extends HttpServlet {
             final CSStatusConnected statusConnected = getStatusConnected(receiveConnected, stammdaten.getId());
             final String color = calcColor(stammdaten, statusConnected);
             Instant lastContactValue = lastContact.get(stammdaten.getId());
-            String bezeichnung = stammdaten.getName() + " [" + stammdaten.getId() + "]";
-            bezeichnung += getStatusString(statusConnected);
-            bezeichnung += " Letzter Kontakt: " + DateTimeHelper.humanReadable(lastContactValue);
-            bezeichnung += " <a href=cs?cs=" + stammdaten.getId() + ">Details</a>";
-            response.getWriter().println(getJScriptCircle(counter, stammdaten.getCoordinates(), color, bezeichnung));
+
+            final String circleName = "circle" + counter;
+            String popuptext = stammdaten.getName() + " [" + stammdaten.getId() + "]<br>";
+            popuptext += getStatusString(statusConnected) + "<br>";
+            popuptext += "Letzter Kontakt: " + DateTimeHelper.humanReadable(lastContactValue) + "<br>";
+            popuptext += "<button onClick=\\\"showCS(" + circleName + ",'" + stammdaten.getId() + "')\\\">Details</button>";
+
+            //            popuptext += " <a href=cs?cs=" + stammdaten.getId() + ">Details</a>";
+
+//            response.getWriter().println(getJScriptCircleMitPopupname(counter, stammdaten.getCoordinates(), color, popupName));
+            response.getWriter().println(getJScriptCircle(circleName, stammdaten.getCoordinates(), color, popuptext));
+//            response.getWriter().println(getJScriptCircle(counter, stammdaten.getCoordinates(), color, stammdaten.getId()));
             counter++;
         }
 
@@ -166,10 +261,10 @@ public class MapServlet extends HttpServlet {
 
     private String getStatusString(CSStatusConnected statusConnected) {
         if (statusConnected != null) {
-            return " Status: " + statusConnected.getCPConnectorStatus().toString() +
+            return "Status: " + statusConnected.getCPConnectorStatus().toString() +
                     " / " + statusConnected.getCPChargingState().toString();
         }
-        return " Status: Nicht Verbunden"; // A1
+        return "Status: Nicht Verbunden"; // A1
     }
 
     private String calcColor(CSStammdaten stammdaten, CSStatusConnected statusConnected) {
@@ -229,21 +324,21 @@ public class MapServlet extends HttpServlet {
                 "\n";
     }
 
-    private String getJScriptCircle(int counter, String coordinates, String color, String bezeichnung) {
+    private String getJScriptCircle(String circleName, String coordinates, String color, String popuptext) {
         String result =
-                "    var circle" + counter + " = L.circleMarker([" + coordinates + "], {\n" +
+                "    var " + circleName + " = L.circleMarker([" + coordinates + "], {\n" +
                 "        color: 'black',\n" +
                 //"        color: '" + color + "',\n" +
                 "        fillColor: '" + color + "',\n" +
                 "        fillOpacity: 0.5,\n" +
                 "        radius: 7\n" +
                 "    }).addTo(map);\n" +
-                "    circle" + counter + ".bindPopup(\"" + bezeichnung + "\");";
-        System.out.println("getJScriptCircle: " + result);
+                "    " + circleName + ".bindPopup(\"" + popuptext + "\");";
+        //System.out.println("getJScriptCircle: " + result);
         return result;
     }
 
-    private String getJScriptCircle2(int counter, String coordinates, String color, String bezeichnung) {
+    private String getJScriptCircleMitPopupname(int counter, String coordinates, String color, String popupname) {
         String result =
                 "    var circle" + counter + " = L.circleMarker([" + coordinates + "], {\n" +
                         "        color: 'black',\n" +
@@ -252,11 +347,25 @@ public class MapServlet extends HttpServlet {
                         "        fillOpacity: 0.5,\n" +
                         "        radius: 7\n" +
                         "    }).addTo(map);\n" +
-                        "    circle" + counter + ".on('click', clickOnMarker);" +
-                        "    circle" + counter + ".bindPopup(\"" + bezeichnung + "\");";
-        System.out.println("getJScriptCircle: " + result);
+                        "    circle" + counter + ".bindPopup(\"" + popupname + "\");";
+        //System.out.println("getJScriptCircle: " + result);
         return result;
     }
+
+//    private String getJScriptCircle(int counter, String coordinates, String color, String id) {
+//        String result =
+//                "    var circle" + counter + " = L.circleMarker([" + coordinates + "], {\n" +
+//                        "        color: 'black',\n" +
+//                        //"        color: '" + color + "',\n" +
+//                        "        fillColor: '" + color + "',\n" +
+//                        "        fillOpacity: 0.5,\n" +
+//                        "        radius: 7\n" +
+//                        "    }).addTo(map);\n" +
+//                        "    circle" + counter + ".on('click', clickOnMarker2('" + id + "'));";
+//                        //+ "    circle" + counter + ".bindPopup(\"" + bezeichnung + "\");";
+//        System.out.println("getJScriptCircle: " + result);
+//        return result;
+//    }
 
     private String getHead() {
         return "<head>\n" +
