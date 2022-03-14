@@ -22,8 +22,8 @@ public class FakeCSStatusConnected {
         // Wir nehmen mal N = 5 Minuten an:
         final Instant w1 = Instant.now().minus(3, ChronoUnit.MINUTES);
         final Instant f1 = Instant.now().minus(8, ChronoUnit.MINUTES);
-        log("Zeitpunkt W1: " + w1);
-        log("Zeitpunkt F1: " + f1);
+//        log("Zeitpunkt W1: " + w1);
+//        log("Zeitpunkt F1: " + f1);
         lastContact.put(KeyLadestationOhneStammdaten, Instant.now());
         lastContact.put(KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, w1);
         lastContact.put(KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN, f1);

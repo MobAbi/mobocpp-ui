@@ -81,39 +81,43 @@ public class ChargestationServlet extends HttpServlet {
 //                response.getWriter().println("<br>Chargepoints: " + statusDetail.getCPStatusList().size());
                 response.getWriter().println("<hr>");
                 for (CPStatus cpStatus : statusDetail.getCPStatusList()) {
-                    response.getWriter().println("<br>Chargepoint");
-                    response.getWriter().println("<br>ConnectorId: " + cpStatus.getConnectorId());
-                    response.getWriter().println("<br>ConnectorStatus: " + cpStatus.getConnectorStatus());
-                    response.getWriter().println("<br>ChargingState: " + cpStatus.getChargingState());
-                    response.getWriter().println("<br>CurrentChargingAmpere: " + cpStatus.getCurrentChargingAmpere());
-                    response.getWriter().println("<br>CurrentChargedEnergy: " + cpStatus.getCurrentChargedEnergy());
-                    response.getWriter().println("<br>ErrorCode: " + cpStatus.getErrorCode());
-                    response.getWriter().println("<br>ErrorInfo: " + cpStatus.getErrorInfo());
+                    if (cpStatus.getConnectorId() != 0) {
+                        response.getWriter().println("<br>Chargepoint");
+                        response.getWriter().println("<br>ConnectorId: " + cpStatus.getConnectorId());
+                        response.getWriter().println("<br>ConnectorStatus: " + cpStatus.getConnectorStatus());
+                        response.getWriter().println("<br>ChargingState: " + cpStatus.getChargingState());
+                        response.getWriter().println("<br>CurrentChargingAmpere L1: " + cpStatus.getCurrentChargingAmpereL1());
+                        response.getWriter().println("<br>CurrentChargingAmpere L2: " + cpStatus.getCurrentChargingAmpereL2());
+                        response.getWriter().println("<br>CurrentChargingAmpere L3: " + cpStatus.getCurrentChargingAmpereL3());
+                        response.getWriter().println("<br>CurrentChargedEnergy: " + cpStatus.getCurrentChargedEnergy());
+                        response.getWriter().println("<br>ErrorCode: " + cpStatus.getErrorCode());
+                        response.getWriter().println("<br>ErrorInfo: " + cpStatus.getErrorInfo());
 
-                    if (!cpStatus.getCPStatusHistoryList().isEmpty()) {
-                        response.getWriter().println("<br><br>Status History:");
-                        for (CPStatusHistoryEntry historyEntry : cpStatus.getCPStatusHistoryList()) {
-                            String error = getErrorString(historyEntry);
-                            String line =
-                                    historyEntry.getTimestamp() +
-                                    ": " + historyEntry.getConnectorStatus() +
-                                    " / " + historyEntry.getChargingState() +
-                                    (error == null ? "" : ", " + error);
-                            response.getWriter().println("<br>" + line);
+                        if (!cpStatus.getCPStatusHistoryList().isEmpty()) {
+                            response.getWriter().println("<br><br>Status History:");
+                            for (CPStatusHistoryEntry historyEntry : cpStatus.getCPStatusHistoryList()) {
+                                String error = getErrorString(historyEntry);
+                                String line =
+                                        historyEntry.getTimestamp() +
+                                                ": " + historyEntry.getConnectorStatus() +
+                                                " / " + historyEntry.getChargingState() +
+                                                (error == null ? "" : ", " + error);
+                                response.getWriter().println("<br>" + line);
+                            }
                         }
-                    }
-                    if (!cpStatus.getCPTransactionHistoryList().isEmpty()) {
-                        response.getWriter().println("<br><br>Transaction History:");
-                        for (CPTransactionHistoryEntry historyEntry : cpStatus.getCPTransactionHistoryList()) {
-                            String line =
-                                    " Start: " + historyEntry.getStartTimestamp() +
-                                    ", Stop: " + historyEntry.getStopTimestamp() +
-                                    ", StartValue: " + historyEntry.getStartValue() +
-                                    ", StopValue: " + historyEntry.getStopValue();
-                            response.getWriter().println("<br>" + line);
+                        if (!cpStatus.getCPTransactionHistoryList().isEmpty()) {
+                            response.getWriter().println("<br><br>Transaction History:");
+                            for (CPTransactionHistoryEntry historyEntry : cpStatus.getCPTransactionHistoryList()) {
+                                String line =
+                                        " Start: " + historyEntry.getStartTimestamp() +
+                                                ", Stop: " + historyEntry.getStopTimestamp() +
+                                                ", StartValue: " + historyEntry.getStartValue() +
+                                                ", StopValue: " + historyEntry.getStopValue();
+                                response.getWriter().println("<br>" + line);
+                            }
                         }
+                        response.getWriter().println("<hr>");
                     }
-                    response.getWriter().println("<hr>");
                 }
             }
         } else {

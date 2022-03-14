@@ -89,7 +89,7 @@ public class MapServlet extends HttpServlet {
     private CSStatusConnected getStatusConnected(List<CSStatusConnectedResponse> receiveConnected, String id) {
         for (CSStatusConnectedResponse csStatusConnectedResponse : receiveConnected) {
             for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
-                if (str(csStatusConnected.getId()).equalsIgnoreCase(id)) {
+                if (csStatusConnected.getId().equalsIgnoreCase(id)) {
                     return csStatusConnected;
                 }
             }
@@ -105,7 +105,7 @@ public class MapServlet extends HttpServlet {
         List<CSStatusConnectedResponse> receiveConnected = getAvroConsumer().receive(CSStatusConnectedResponse.class, 3000, 1);
         for (CSStatusConnectedResponse csStatusConnectedResponse : receiveConnected) {
             for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
-                lastContact.put(str(csStatusConnected.getId()), DateTimeHelper.parse(str(csStatusConnected.getLastContact())));
+                lastContact.put(csStatusConnected.getId(), DateTimeHelper.parse(csStatusConnected.getLastContact()));
 //                getAvroProducer().requestStatusForId(str(csStatusConnected.getId()), null, 1);
 //                List<CSStatusForIdResponse> receiveDetail = getAvroConsumer().receive(CSStatusForIdResponse.class, 10000, 1);
             }
@@ -116,7 +116,7 @@ public class MapServlet extends HttpServlet {
         final List<CSStatusConnected> keineStammdaten = new ArrayList<>(); // A1
         for (CSStatusConnectedResponse csStatusConnectedResponse : receiveConnected) {
             for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
-                final CSStammdaten stammdaten = getStammdaten(str(csStatusConnected.getId()));
+                final CSStammdaten stammdaten = getStammdaten(csStatusConnected.getId());
                 if (stammdaten == null) {
                     keineStammdaten.add(csStatusConnected);
                 }
@@ -129,12 +129,12 @@ public class MapServlet extends HttpServlet {
         response.getWriter().println(getHead());
         response.getWriter().println("<body>");
 
-        response.getWriter().println("<div id=\"csModal\" class=\"modal\">");
-        response.getWriter().println(" <div id=\"csModalContent\" class=\"modal-content\">");
-        response.getWriter().println("  <span class=\"close\">&times;</span>");
-        response.getWriter().println("  <p>Some text in the Modal..0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789</p>");
-        response.getWriter().println(" </div>");
-        response.getWriter().println("</div>");
+//        response.getWriter().println("<div id=\"csModal\" class=\"modal\">");
+//        response.getWriter().println(" <div id=\"csModalContent\" class=\"modal-content\">");
+//        response.getWriter().println("  <span class=\"close\">&times;</span>");
+//        response.getWriter().println("  <p>Some text in the Modal..0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789</p>");
+//        response.getWriter().println(" </div>");
+//        response.getWriter().println("</div>");
 
         response.getWriter().println("<div id=\"map\"></div>");
         if (!keineStammdaten.isEmpty()) {
@@ -149,9 +149,9 @@ public class MapServlet extends HttpServlet {
         // !!!! Hier gehts weiter: Ausprobieren ob das funktioniert !!!!
 
 
-        response.getWriter().println("var modal = document.getElementById(\"csModal\");");
+//        response.getWriter().println("var modal = document.getElementById(\"csModal\");");
 //        response.getWriter().println("var btn = document.getElementById(\"myBtn\");\n");
-        response.getWriter().println("var span = document.getElementsByClassName(\"close\")[0];");
+//        response.getWriter().println("var span = document.getElementsByClassName(\"close\")[0];");
 
 //        response.getWriter().println("async function clickOnMarker(e){\n" +
 //                "const response = await fetch('csJ?cs=JC310001');\n" +
@@ -175,19 +175,33 @@ public class MapServlet extends HttpServlet {
 //                "  map.display = \"none\";\n" +
 //                "}");
 
+        response.getWriter().println("function removeDetail(content) {\n");
+        response.getWriter().println("  console.log('content: ', content);\n");
+//        response.getWriter().println("  var result = content;\n");
+        response.getWriter().println("  let hrPos = content.search(\"<hr>\");\n");
+        response.getWriter().println("  console.log('hrPos', hrPos);\n");
+        response.getWriter().println("  if (hrPos !== -1) {\n");
+        response.getWriter().println("    console.log('hrPos ist nicht minus eins: ', content.substring(0, hrPos));\n");
+        response.getWriter().println("    return content.substring(0, hrPos);\n");
+        response.getWriter().println("  }\n");
+        response.getWriter().println("  console.log('hrPos ist minus ein: ', content);\n");
+        response.getWriter().println("  return content;\n");
+        response.getWriter().println("}\n");
+
         response.getWriter().println("async function showCS(circle, value) {\n" +
 //                "   console.log('showCS: ', circle, value);\n" +
                 "   var popup = circle.getPopup();\n" +
-                "   const url = 'csJ?cs=' + value;\n" +
+                "   popup.setContent(removeDetail(popup.getContent()));\n" +
 
+                "   const url = 'csJ?cs=' + value;\n" +
                 "   const response = await fetch(url);\n" +
                 "   const jsonResult = await response.json();\n" +
                 "   console.log('JSONResult: ', jsonResult);\n" +
 
                 "   if (jsonResult.Status !== undefined) {\n" +
                 "    console.log('jsonResult.Status: ', jsonResult.Status);\n" +
-                "    const oldContent = popup.getContent();\n" +
-                "    let newContent = oldContent + '<br><hr>';\n" +
+                "    const oldContent = removeDetail(popup.getContent());\n" +
+                "    let newContent = oldContent + '<hr>';\n" +
                 "    newContent +=  'BackendStatus: ' + jsonResult.Status.BackendStatus + '<br>';\n" +
                 "    newContent +=  'Vendor: ' + jsonResult.Status.Vendor + '<br>';\n" +
                 "    newContent +=  'Model: ' + jsonResult.Status.Model + '<br>';\n" +
@@ -198,19 +212,22 @@ public class MapServlet extends HttpServlet {
                 "    newContent +=  'IPAddress: ' + jsonResult.Status.IPAddress + '<br>';\n" +
                 "    newContent +=  '<br>';\n" +
 
-                "    for (index = 0; index < jsonResult.Status.CPStatusList.length; index++) {" +
+                "    for (index = 1; index < jsonResult.Status.CPStatusList.length; index++) {" +
                 "      newContent +=  'ConnectorId: ' + jsonResult.Status.CPStatusList[index].ConnectorId + '<br>';\n" +
                 "      newContent +=  'ConnectorStatus: ' + jsonResult.Status.CPStatusList[index].ConnectorStatus + '<br>';\n" +
                 "      newContent +=  'ChargingState: ' + jsonResult.Status.CPStatusList[index].ChargingState + '<br>';\n" +
                 "      newContent +=  'CurrentChargedEnergy: ' + jsonResult.Status.CPStatusList[index].CurrentChargedEnergy + '<br>';\n" +
-                "      newContent +=  'CurrentChargingAmpere: ' + jsonResult.Status.CPStatusList[index].CurrentChargingAmpere + '<br>';\n" +
+                "      newContent +=  'CurrentChargingAmpere L1: ' + jsonResult.Status.CPStatusList[index].CurrentChargingAmpereL1 + '<br>';\n" +
+                "      newContent +=  'CurrentChargingAmpere L2: ' + jsonResult.Status.CPStatusList[index].CurrentChargingAmpereL2 + '<br>';\n" +
+                "      newContent +=  'CurrentChargingAmpere L3: ' + jsonResult.Status.CPStatusList[index].CurrentChargingAmpereL3 + '<br>';\n" +
+                "      newContent +=  'CurrentChargedEnergy: ' + jsonResult.Status.CPStatusList[index].CurrentChargedEnergy + '<br>';\n" +
                 "      newContent +=  'ErrorCode: ' + jsonResult.Status.CPStatusList[index].ErrorCode + '<br>';\n" +
                 "      newContent +=  'ErrorInfo: ' + jsonResult.Status.CPStatusList[index].ErrorInfo + '<br><br>';\n" +
                 "    }" +
 
                 "    popup.setContent(newContent);" +
-                "    popup.update();" +
                 "   }" +
+                "   popup.update();" +
 
 //                "  var modalContent = document.getElementById(\"csModalContent\");\n" +
 //                "  modalContent.innerHTML = '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789 changed1';\n" +
@@ -218,19 +235,17 @@ public class MapServlet extends HttpServlet {
 //                "  map.display = \"none\";\n" +
                 "}");
 
-//        response.getWriter().println("btn.onclick = function() {");
-//        response.getWriter().println("  modal.style.display = \"block\";");
+//        response.getWriter().println("span.onclick = function() {");
+//        response.getWriter().println("  modal.style.display = \"none\";");
+//        response.getWriter().println("  map.display = \"inline\";");
 //        response.getWriter().println("}");
-        response.getWriter().println("span.onclick = function() {");
-        response.getWriter().println("  modal.style.display = \"none\";");
-        response.getWriter().println("  map.display = \"inline\";");
-        response.getWriter().println("}");
-        response.getWriter().println("window.onclick = function(event) {");
-        response.getWriter().println("  if (event.target == modal) {");
-        response.getWriter().println("    modal.style.display = \"none\";");
-        response.getWriter().println("    map.display = \"inline\";");
-        response.getWriter().println("  }");
-        response.getWriter().println("}");
+
+//        response.getWriter().println("window.onclick = function(event) {");
+//        response.getWriter().println("  if (event.target == modal) {");
+//        response.getWriter().println("    modal.style.display = \"none\";");
+//        response.getWriter().println("    map.display = \"inline\";");
+//        response.getWriter().println("  }");
+//        response.getWriter().println("}");
 
         response.getWriter().println(getJScriptMap());
 
@@ -267,6 +282,19 @@ public class MapServlet extends HttpServlet {
         return "Status: Nicht Verbunden"; // A1
     }
 
+//    final static String RED = "#f03";          // F1
+//    final static String YELLOW_LIGHT = "#ff9"; // W1
+//    final static String YELLOW_DARK = "#ff0";  // W2
+//    final static String BLUE = "#00f";         // O1
+//    final static String GREEN_DARK = "#0f0";   // O2
+//    final static String GREEN_LIGHT = "#0f9";  // O3
+
+//    Blau: Online / Verfügbar, keine Auto angeschlossen
+//    Dunkel-Grün: Online / Verfügbar, Auto angeschlossen, nicht am Laden
+//    Dunkel-Grün blinkend: Online / Verfügbar, Auto angeschlossen und am Laden
+//    Gelb: Problem, Hinweis zum Problem anzeigbar sofern vorhanden
+//    Rot: Fehler, Hinweis zum Fehler anzeigbar sofern vorhanden
+
     private String calcColor(CSStammdaten stammdaten, CSStatusConnected statusConnected) {
 
         if (stammdaten == null) throw new IllegalArgumentException("Stammdaten darf nicht leer sein");
@@ -283,17 +311,20 @@ public class MapServlet extends HttpServlet {
                 if (statusConnected == null) {
                     result = YELLOW_LIGHT;
                 } else {
-                    if (ConnectorStatusEnum.Faulted.name().equalsIgnoreCase(str(statusConnected.getCPConnectorStatus()))) {
+                    if (ConnectorStatusEnum.Faulted.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
                         result = YELLOW_DARK;
-                    } else if (matchConnectorStatus(ConnectorStatusEnum.Available, str(statusConnected.getCPConnectorStatus())) &&
-                            matchChargingState(ChargingStateEnum.Idle, str(statusConnected.getCPChargingState()))) {
+                    } else if (ConnectorStatusEnum.Reserved.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                        result = YELLOW_DARK;
+                    } else if (ConnectorStatusEnum.Unavailable.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                        result = YELLOW_DARK;
+                    } else if (matchConnectorStatus(ConnectorStatusEnum.Available, statusConnected.getCPConnectorStatus())) {
                         result = BLUE;
-                    } else if (matchConnectorStatus(ConnectorStatusEnum.Occupied, str(statusConnected.getCPConnectorStatus())) &&
-                            (!matchChargingState(ChargingStateEnum.Charging, str(statusConnected.getCPChargingState())))) {
-                        result = GREEN_DARK;
-                    } else if (matchConnectorStatus(ConnectorStatusEnum.Occupied, str(statusConnected.getCPConnectorStatus())) &&
-                            (matchChargingState(ChargingStateEnum.Charging, str(statusConnected.getCPChargingState())))) {
-                        result = GREEN_LIGHT;
+                    } else if (ConnectorStatusEnum.Occupied.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                        if (matchChargingState(ChargingStateEnum.Charging, statusConnected.getCPChargingState())) {
+                            result = GREEN_DARK;
+                        } else {
+                            result = GREEN_LIGHT;
+                        }
                     } else {
                         throw new IllegalStateException("stammdaten=" + stammdaten + ", statusConnected=" + statusConnected);
                     }
@@ -325,6 +356,7 @@ public class MapServlet extends HttpServlet {
     }
 
     private String getJScriptCircle(String circleName, String coordinates, String color, String popuptext) {
+        final String popupName = circleName + "popup";
         String result =
                 "    var " + circleName + " = L.circleMarker([" + coordinates + "], {\n" +
                 "        color: 'black',\n" +
@@ -333,7 +365,19 @@ public class MapServlet extends HttpServlet {
                 "        fillOpacity: 0.5,\n" +
                 "        radius: 7\n" +
                 "    }).addTo(map);\n" +
-                "    " + circleName + ".bindPopup(\"" + popuptext + "\");";
+                "    const " + popupName + " = new L.Popup({ closeOnClick: true, maxWidth: 600, maxHeight: 800 })\n" +
+                "     .setContent(\"" + popuptext + "\");\n" +
+                //"    " + circleName + ".bindPopup(\"" + popuptext + "\");\n" +
+                "    var layer = " + circleName + ".bindPopup(" + popupName + ");\n" +
+
+                  "    layer.on('popupclose', (e) => {\n" +
+                  "      console.log('layer.popupclose 1: ', e);\n" +
+                  "      console.log('layer.popupclose 2: ', e.popup);\n" +
+                  "      var content = removeDetail(e.popup.getContent());" +
+                  "      e.popup.setContent(content);" +
+                  "      e.popup.update();" +
+                  "    });\n";
+
         //System.out.println("getJScriptCircle: " + result);
         return result;
     }
@@ -379,13 +423,6 @@ public class MapServlet extends HttpServlet {
                 "    </script>\n" +
                 "    <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">\n" +
                 "</head>";
-    }
-
-    private static String str(CharSequence c) {
-        if (c != null) {
-            return String.valueOf(c);
-        }
-        return null;
     }
 
     private static class CSStammdaten {

@@ -48,7 +48,7 @@ public class AvroConsumer<T extends GenericRecord>
             Properties props = new Properties();
 
             props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-            props.put(ConsumerConfig.GROUP_ID_CONFIG, "mobility");
+            props.put(ConsumerConfig.GROUP_ID_CONFIG, "mobility-ui");
             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
             props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
