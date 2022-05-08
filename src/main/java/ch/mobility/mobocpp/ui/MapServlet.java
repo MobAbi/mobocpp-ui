@@ -36,20 +36,17 @@ public class MapServlet extends HttpServlet {
     private static Map<String, Instant> lastContact = new HashMap<>();
     static {
         //stammdatenMap.add(CSStammdaten.of(KeyLadestationOhneStammdaten, "47.5475926,7.5874733", "Basel Hauptbahnhof"));
-        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "47.4458578,9.1400634", "Wil Raiffeisenbank"));
-        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN, "47.1442198,8.4349035", "Rotkreuz Hauptsitz"));
-        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler, "46.5160055,6.6277126", "Lausanne Bahnhof"));
-        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen, "46.1726474,8.7994749", "Locarno SBB"));
-        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden, "46.8482,9.5311401", "Chur Museumsstrasse"));
-        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden, "47.3776673,8.5323237", "Zurich Europaallee"));
+        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "47.4458578,9.1400634", "Raiffeisenbank", "9500", "Wil"));
+        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN, "47.1442198,8.4349035", "Hauptsitz", "6343", "Rotkreuz"));
+        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler, "46.5160055,6.6277126", "Bahnhof", "1003", "Lausanne"));
+        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen, "46.1726474,8.7994749", "SBB Locarno", "6600", "Locarno"));
+        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden, "46.8482,9.5311401", "Jochstrasse", "7000", "Chur"));
+        stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden, "47.3776673,8.5323237", "Europaallee", "8004", "Zurich"));
 
-        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtA, "46.9585416,8.3640993", "Stans Bahnhof"));
-        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtB, "46.8974001,8.2461243", "Sarnen Bahnhof"));
-        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtC, "46.2937841,7.8794028", "Visp Bahnhof"));
+        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtA, "46.9585416,8.3640993", "Bahnhof", "6370", "Stans"));
+        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtB, "46.8974001,8.2461243", "Bahnhof", "6060", "Sarnen"));
+        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtC, "46.2937841,7.8794028", "Bahnhof", "3930", "Visp"));
     }
-
-//    private AvroProducer avroProducer = null;
-//    private AvroConsumer avroConsumer = null;
 
     private AvroProducer getAvroProducer() {
         return AvroProducer.get();
@@ -61,18 +58,10 @@ public class MapServlet extends HttpServlet {
 
     @Override
     public void init() {
-//        avroProducer = new AvroProducer();
-//        avroConsumer = new AvroConsumer();
     }
 
     @Override
     public void destroy() {
-//        if (avroProducer != null) {
-//            avroProducer.close();
-//        }
-//        if (avroConsumer != null) {
-//            avroConsumer.close();
-//        }
         AvroProducer.get().close();
         AvroConsumer.get().close();
     }
@@ -220,7 +209,6 @@ public class MapServlet extends HttpServlet {
                 "      newContent +=  'CurrentChargingAmpere L1: ' + jsonResult.Status.CPStatusList[index].CurrentChargingAmpereL1 + '<br>';\n" +
                 "      newContent +=  'CurrentChargingAmpere L2: ' + jsonResult.Status.CPStatusList[index].CurrentChargingAmpereL2 + '<br>';\n" +
                 "      newContent +=  'CurrentChargingAmpere L3: ' + jsonResult.Status.CPStatusList[index].CurrentChargingAmpereL3 + '<br>';\n" +
-                "      newContent +=  'CurrentChargedEnergy: ' + jsonResult.Status.CPStatusList[index].CurrentChargedEnergy + '<br>';\n" +
                 "      newContent +=  'ErrorCode: ' + jsonResult.Status.CPStatusList[index].ErrorCode + '<br>';\n" +
                 "      newContent +=  'ErrorInfo: ' + jsonResult.Status.CPStatusList[index].ErrorInfo + '<br><br>';\n" +
                 "    }" +
@@ -421,35 +409,7 @@ public class MapServlet extends HttpServlet {
                 "            integrity=\"sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==\"\n" +
                 "            crossorigin=\"\">\n" +
                 "    </script>\n" +
-                "    <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">\n" +
+                "    <link rel=\"stylesheet\" type=\"text/css\" href=\"mapstyle.css\">\n" +
                 "</head>";
-    }
-
-    private static class CSStammdaten {
-        private final String id;
-        private final String coordinates;
-        private final String name;
-
-        public static CSStammdaten of(String id, String coordinates, String name) {
-            return new CSStammdaten(id, coordinates, name);
-        }
-
-        private CSStammdaten(String id, String coordinates, String name) {
-            this.id = id;
-            this.coordinates = coordinates;
-            this.name = name;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getCoordinates() {
-            return coordinates;
-        }
-
-        public String getName() {
-            return name;
-        }
     }
 }

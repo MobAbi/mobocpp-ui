@@ -1,0 +1,64 @@
+body {
+	background-color: #e6f2ff;
+}
+
+table {
+	border-collapse: collapse;
+	/*border-collapse:separate;*/
+	/*border:solid black 3px;*/
+	/*border-radius:25px;*/
+
+	text-align: center;
+	vertical-align: middle;
+	width: 100%;
+}
+
+.controlInput {
+	/*border-style: solid;*/
+	/*border-width: 3px;*/
+	/*border-radius: 25px;*/
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+.filterInput {
+	/* border: 5px solid #FFFF00; */
+    text-align: center;
+	border-radius: 25px;
+	padding: 8px;
+	margin: 5px;
+	width: 40%;
+	display: inline-block;
+}
+
+.button {
+	border-radius: 15px;
+	padding: 8px;
+	margin: 5px;
+	width: 10%;
+	display: inline-block;
+}
+
+.infolabel {
+	border-radius: 15px;
+	padding: 8px;
+	margin: 5px;
+	width: 35%;
+	display: inline-block;
+}
+
+thead {
+	background-color: #333;
+	color: white;
+}
+
+th, td {
+	border: 1px solid black;
+	padding: 5px;
+}
+
+thead th {
+	/* width: 11%; */
+	/* width: available;*/
+}

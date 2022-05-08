@@ -7,6 +7,11 @@ import java.net.URL;
 
 public class ServerMain {
 
+    public static String HOST = "192.168.1.12";
+//    public static String HOST = "192.168.1.48";
+    public static String PORT_BOOTSTRAP = "9092";
+    public static String PORT_SCHEMA_REGISTRY = "8081";
+
     public static void main(String[] args) throws Exception {
 
         Server server = new Server(8088);

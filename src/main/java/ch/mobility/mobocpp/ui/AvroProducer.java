@@ -31,14 +31,14 @@ public class AvroProducer {
         System.out.println("AvroProducer Topic: " + topicName);
 
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, ServerMain.HOST + ":" + ServerMain.PORT_BOOTSTRAP);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
 
         // https://www.confluent.io/blog/put-several-event-types-kafka-topic/
         props.put("value.subject.name.strategy", "io.confluent.kafka.serializers.subject.RecordNameStrategy");
 
-        props.put("schema.registry.url", "http://192.168.1.48:8081");
+        props.put("schema.registry.url", "http://" + ServerMain.HOST + ":" + ServerMain.PORT_SCHEMA_REGISTRY);
 
         producer = new KafkaProducer(props);
     }
@@ -55,7 +55,8 @@ public class AvroProducer {
                 producer.send(record);
                 System.out.println("Gesendet: " + genericRecord.getClass().getSimpleName() + "=" + genericRecord);
             } catch (SerializationException e) {
-                System.err.println("Error: " + e.getMessage());
+                System.err.println("AvroProducer Error: " + (e.getCause() == null ? e.getMessage() : e.getCause().getMessage()));
+                e.printStackTrace(System.err);
             }
         }
     }

@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.time.Instant;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class DateTimeHelperTest {
@@ -26,4 +27,17 @@ public class DateTimeHelperTest {
         assertNotNull(parsed);
     }
 
+    @Test
+    public void testSekundenSincePast() {
+        final long minus = 100;
+        final long seconds = DateTimeHelper.getSecondsSince(Instant.now().minusSeconds(minus));
+        assertEquals(minus, seconds);
+    }
+
+    @Test
+    public void testSekundenSinceFuture() {
+        final long plus = 100;
+        final long seconds = DateTimeHelper.getSecondsSince(Instant.now().plusSeconds(plus));
+        assertEquals(-1L, seconds);
+    }
 }

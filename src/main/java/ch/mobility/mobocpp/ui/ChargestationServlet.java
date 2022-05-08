@@ -149,7 +149,7 @@ public class ChargestationServlet extends HttpServlet {
 //                "            integrity=\"sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==\"\n" +
 //                "            crossorigin=\"\">\n" +
 //                "    </script>\n" +
-                "    <link rel=\"stylesheet\" href=\"style.css\">\n" +
+                "    <link rel=\"stylesheet\" href=\"mapstyle.css\">\n" +
                 "</head>";
     }
 }

@@ -1,7 +1,9 @@
 package ch.mobility.mobocpp.ui;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.time.temporal.TemporalAccessor;
@@ -9,8 +11,8 @@ import java.util.Locale;
 
 public class DateTimeHelper {
 
-//    final static DateTimeFormatter humanReadableFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    final static DateTimeFormatter humanReadableFormatter =
+    final static DateTimeFormatter humanReadableFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZoneId.systemDefault());
+    final static DateTimeFormatter humanReadableFormatterUnused =
             DateTimeFormatter.ofLocalizedDateTime( FormatStyle.LONG )
                     .withLocale( Locale.GERMAN )
 //                    .withZone(ZoneId.from(ZoneOffset.UTC));
@@ -45,6 +47,17 @@ public class DateTimeHelper {
             return Instant.from(ta);
         }
         return null;
+    }
+
+    public static long getSecondsSince(Instant instant) {
+        if (instant != null) {
+            final Instant now = Instant.from(Instant.now().atZone(ZoneOffset.UTC));
+            if (instant.isBefore(now)) {
+                final Duration duration = Duration.between(instant, now);
+                return duration.abs().toSeconds();
+            }
+        }
+        return -1L;
     }
 
 //    public static String format(DateTime jodaDateTime) {

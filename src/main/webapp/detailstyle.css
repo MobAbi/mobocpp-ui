@@ -1,0 +1,83 @@
+body {
+    background-color: #e6f2ff;
+}
+
+.top {
+    /*background-color: lightblue;*/
+    display: flex;
+    justify-content: center;
+    width: 98%;
+    padding: 8px;
+    margin: 5px;
+}
+
+.maincontrol {
+    /*background-color: lightgrey;*/
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    width: 98%;
+    padding: 8px;
+    margin: 5px;
+}
+
+.infolabel {
+    border-radius: 15px;
+    padding: 8px;
+    margin: 5px;
+    width: 25%;
+    display: inline-block;
+}
+
+.main {
+    /*background-color: lightcyan;*/
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    display: flex;
+    /*justify-content: center;*/
+    width: 98%;
+    padding: 8px;
+    margin: 5px;
+}
+
+.mainleft {
+    /*background-color: lightseagreen;*/
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 10px;
+    /*display: flex;*/
+    width: 50%;
+    padding: 8px;
+    margin: 5px;
+}
+
+.mainright {
+    /*background-color: lightpink;*/
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 10px;
+    /*display: inline-block;*/
+    width: 50%;
+    padding: 8px;
+    margin: 5px;
+}
+
+.bottom {
+    /*background-color: lightgreen;*/
+    display: flex;
+    justify-content: center;
+    width: 98%;
+    padding: 8px;
+    margin: 5px;
+}
+
+.button {
+    border-radius: 15px;
+    padding: 8px;
+    margin: 5px;
+    width: 10%;
+    display: inline-block;
+}
