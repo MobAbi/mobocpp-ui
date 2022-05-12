@@ -102,6 +102,8 @@ class AvroConsumer<T extends GenericRecord>
                                     if (hasMessageId(value, this.expectedMessageId)) {
                                         this.receivedMessages.add(value);
 //                                    log("Match: " + this.expected);
+                                    } else {
+//                                      log("!!!!!!!!!!!!! MessageId passt nicht: " + this.expectedMessageId + " <> " + record.value());
                                     }
                                 } else {
 //                                    log("!!!!!!!!!!!!! Kein Match: " + this.expected + " <> " + record.value());
@@ -128,27 +130,17 @@ class AvroConsumer<T extends GenericRecord>
                 throw new IllegalArgumentException("Parameter <expectedMessageId> must not be null");
             }
             try {
-                final Field field = value.getClass().getField(RESPONSE_INFO);
-                final CSResponse csResponse = (CSResponse)field.get(value);
+                final Field responseInfoField = value.getClass().getDeclaredField(RESPONSE_INFO);
+                responseInfoField.setAccessible(true);
+                final CSResponse csResponse = (CSResponse)responseInfoField.get(value);
                 if (expectedMessageId.equals(csResponse.getMessageId())) {
                     return true;
                 }
             } catch (NoSuchFieldException e ) {
-                throw new IllegalStateException("Missing field <" + RESPONSE_INFO + "> in Class <" + value.getClass() + ">", e);
+                throw new IllegalStateException("Missing field <" + RESPONSE_INFO + "> in Class <" + value.getClass().getName() + ">", e);
             } catch (IllegalAccessException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
-//
-//
-//            CSResponse csResponse = field.get(objectInstance);
-//
-//
-//            for (Field field : value.getClass().getFields()) {
-//                if (field.getType().isAssignableFrom(CSResponse.class)) {
-//                    CSResponse csResponse = (CSResponse)field.;
-//                    System.out.println("Field " + field + " is assignable from type " + o.getClass());
-//                }
-//            }
             return false;
         }
     }

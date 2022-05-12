@@ -10,7 +10,7 @@ public class AvroProsumer {
 
     private static AvroProsumer INSTANCE = null;
 
-    public static AvroProsumer get() {
+    public static synchronized AvroProsumer get() {
         if (INSTANCE == null) {
             INSTANCE = new AvroProsumer(3000, 1);
         }
@@ -39,14 +39,18 @@ public class AvroProsumer {
     }
 
     public List<CSStatusConnectedResponse> getStatusConnected() {
-        final String messageId = UUID.randomUUID().toString();
-        getAvroProducer().requestStatusConnected(messageId);
-        return getAvroConsumer().receive(CSStatusConnectedResponse.class, messageId, wait, maxMobOCPPBackends);
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestStatusConnected(messageId);
+            return getAvroConsumer().receive(CSStatusConnectedResponse.class, messageId, wait, maxMobOCPPBackends);
+        }
     }
 
     public List<CSStatusForIdResponse> getStatusForId(String csId, Integer connectorId, Integer daysOfHistoryData) {
-        final String messageId = UUID.randomUUID().toString();
-        getAvroProducer().requestStatusForId(messageId, csId, connectorId, daysOfHistoryData);
-        return getAvroConsumer().receive(CSStatusForIdResponse.class, messageId, wait, maxMobOCPPBackends);
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestStatusForId(messageId, csId, connectorId, daysOfHistoryData);
+            return getAvroConsumer().receive(CSStatusForIdResponse.class, messageId, wait, maxMobOCPPBackends);
+        }
     }
 }
