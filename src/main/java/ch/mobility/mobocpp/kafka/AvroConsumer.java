@@ -1,11 +1,13 @@
 package ch.mobility.mobocpp.ui;
 
+import ch.mobility.ocpp2mob.CSResponse;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +16,8 @@ import java.util.Properties;
 
 public class AvroConsumer<T extends GenericRecord>
 {
+    private static final String RESPONSE_INFO = "ResponseInfo";
+
     private static AvroConsumer INSTANCE = null;
 
     public static AvroConsumer get() {
@@ -40,8 +44,9 @@ public class AvroConsumer<T extends GenericRecord>
         private static final String topicName = "ocpp2mob";
         private Consumer<String, GenericRecord> consumer = null;
         private boolean run = true;
-        private Class expected = null;
-        private List<T> toFill = null;
+        private Class expectedClass = null;
+        private String expectedMessageId = null;
+        private List<T> receivedMessages = null;
 
         private Consumer<String, GenericRecord> createConsumer() {
 
@@ -69,14 +74,15 @@ public class AvroConsumer<T extends GenericRecord>
             run = false;
         }
 
-        void receive(Class expected) {
+        void receive(Class expectedClass, String expectedMessageId) {
 //            log("Start to expect: " + expected);
-            this.expected = expected;
-            this.toFill = new ArrayList<>();
+            this.expectedClass = expectedClass;
+            this.expectedMessageId = expectedMessageId;
+            this.receivedMessages = new ArrayList<>();
         }
 
         List<T> getReceived() {
-            return this.toFill;
+            return this.receivedMessages;
         }
 
         @Override
@@ -89,10 +95,13 @@ public class AvroConsumer<T extends GenericRecord>
                         ConsumerRecords<String, GenericRecord> records = consumer.poll(duration);
                         for (ConsumerRecord<String, GenericRecord> record : records) {
                             log("record.value().getClass(): " + record.value().getClass());
-                            if (this.expected != null) {
-                                if (record.value().getClass().isAssignableFrom(this.expected)) {
-                                    this.toFill.add((T) record.value());
+                            if (this.expectedClass != null) {
+                                if (record.value().getClass().isAssignableFrom(this.expectedClass)) {
+                                    final T value = (T)record.value();
+                                    if (hasMessageId(value, this.expectedMessageId)) {
+                                        this.receivedMessages.add(value);
 //                                    log("Match: " + this.expected);
+                                    }
                                 } else {
 //                                    log("!!!!!!!!!!!!! Kein Match: " + this.expected + " <> " + record.value());
                                 }
@@ -109,10 +118,42 @@ public class AvroConsumer<T extends GenericRecord>
             }
             log("Consumer stop");
         }
+
+        private boolean hasMessageId(T value, String expectedMessageId) {
+            if (value == null) {
+                throw new IllegalArgumentException("Parameter <value> must not be null");
+            }
+            if (expectedMessageId == null) {
+                throw new IllegalArgumentException("Parameter <expectedMessageId> must not be null");
+            }
+            try {
+                final Field field = value.getClass().getField(RESPONSE_INFO);
+                final CSResponse csResponse = (CSResponse)field.get(value);
+                if (expectedMessageId.equals(csResponse.getMessageId())) {
+                    return true;
+                }
+            } catch (NoSuchFieldException e ) {
+                throw new IllegalStateException("Missing field <" + RESPONSE_INFO + "> in Class <" + value.getClass() + ">", e);
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException(e.getMessage(), e);
+            }
+//
+//
+//            CSResponse csResponse = field.get(objectInstance);
+//
+//
+//            for (Field field : value.getClass().getFields()) {
+//                if (field.getType().isAssignableFrom(CSResponse.class)) {
+//                    CSResponse csResponse = (CSResponse)field.;
+//                    System.out.println("Field " + field + " is assignable from type " + o.getClass());
+//                }
+//            }
+            return false;
+        }
     }
 
-    public List<T> receive(Class expected, long wait, int maxMobOCPPBackends) {
-        consumerThread.receive(expected);
+    public List<T> receive(Class expectedClass, String expectedMessageId, long wait, int maxMobOCPPBackends) {
+        consumerThread.receive(expectedClass, expectedMessageId);
         log("Start receive, waiting " + wait + " ms...");
         final long start = System.currentTimeMillis();
         boolean doWait = true;
@@ -129,7 +170,7 @@ public class AvroConsumer<T extends GenericRecord>
             }
         }
         List<T> received = consumerThread.getReceived();
-        consumerThread.receive(null);
+        consumerThread.receive(null, null);
         log("receiving done: " + received);
         System.out.println("Empfangen: " + received);
         return received;

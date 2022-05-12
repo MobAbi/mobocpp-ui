@@ -61,24 +61,24 @@ public class AvroProducer {
         }
     }
 
-    private static CSRequest request() {
+    private static CSRequest request(String messageId) {
         CSRequest csRequest = CSRequest.newBuilder()
-                .setMessageId(UUID.randomUUID().toString())
+                .setMessageId(messageId)
                 .setRequestCreatedAt(DateTimeHelper.format(Instant.now()))
                 .build();
         return csRequest;
     }
 
-    public void requestStatusConnected() {
+    public void requestStatusConnected(String messageId) {
         CSStatusConnectedRequest request = CSStatusConnectedRequest.newBuilder()
-                .setRequestInfo(request())
+                .setRequestInfo(request(messageId))
                 .build();
         send(request);
     }
 
-    public void requestStatusForId(String id, Integer connectorId, Integer daysOfHistoryData) {
+    public void requestStatusForId(String messageId, String id, Integer connectorId, Integer daysOfHistoryData) {
         CSStatusForIdRequest request = CSStatusForIdRequest.newBuilder()
-                .setRequestInfo(request())
+                .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .setDaysOfHistoryData(daysOfHistoryData)
@@ -86,9 +86,9 @@ public class AvroProducer {
         send(request);
     }
 
-    private static GenericRecord requestStart(String id, Integer connectorId, String tagId, Integer maxCurrent) {
+    private static GenericRecord requestStart(String messageId, String id, Integer connectorId, String tagId, Integer maxCurrent) {
         CSStartChargingRequest request = CSStartChargingRequest.newBuilder()
-                .setRequestInfo(request())
+                .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .setTagId(tagId)
@@ -97,35 +97,35 @@ public class AvroProducer {
         return request;
     }
 
-    private static GenericRecord requestStop(String id, Integer connectorId) {
+    private static GenericRecord requestStop(String messageId, String id, Integer connectorId) {
         CSStopChargingRequest request = CSStopChargingRequest.newBuilder()
-                .setRequestInfo(request())
+                .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .build();
         return request;
     }
 
-    private static GenericRecord requestReset(String id) {
+    private static GenericRecord requestReset(String messageId, String id) {
         CSResetRequest request = CSResetRequest.newBuilder()
-                .setRequestInfo(request())
+                .setRequestInfo(request(messageId))
                 .setId(id)
                 .build();
         return request;
     }
 
-    private static GenericRecord requestUnlock(String id, Integer connectorId) {
+    private static GenericRecord requestUnlock(String messageId, String id, Integer connectorId) {
         CSUnlockRequest request = CSUnlockRequest.newBuilder()
-                .setRequestInfo(request())
+                .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .build();
         return request;
     }
 
-    private static GenericRecord requestProfile(String id, Integer connectorId, Integer maxCurrent) {
+    private static GenericRecord requestProfile(String messageId, String id, Integer connectorId, Integer maxCurrent) {
         CSChangeChargingCurrentRequest request = CSChangeChargingCurrentRequest.newBuilder()
-                .setRequestInfo(request())
+                .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .setMaxCurrent(maxCurrent)
@@ -133,9 +133,9 @@ public class AvroProducer {
         return request;
     }
 
-    private static GenericRecord requestTrigger(String id, Integer connectorId, String trigger) {
+    private static GenericRecord requestTrigger(String messageId, String id, Integer connectorId, String trigger) {
         CSTriggerRequest request = CSTriggerRequest.newBuilder()
-                .setRequestInfo(request())
+                .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .setTriggertype(TriggerKeywordsV1XEnum.valueOf(trigger.toUpperCase()))
