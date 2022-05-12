@@ -1,6 +1,8 @@
-package ch.mobility.mobocpp.ui;
+package ch.mobility.mobocpp.kafka;
 
 import ch.mobility.mob2ocpp.*;
+import ch.mobility.mobocpp.ui.DateTimeHelper;
+import ch.mobility.mobocpp.ui.ServerMain;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -11,9 +13,8 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.time.Instant;
 import java.util.Properties;
-import java.util.UUID;
 
-public class AvroProducer {
+class AvroProducer {
 
     private static AvroProducer INSTANCE = null;
 

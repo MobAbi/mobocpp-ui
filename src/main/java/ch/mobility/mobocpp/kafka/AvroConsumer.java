@@ -1,5 +1,6 @@
-package ch.mobility.mobocpp.ui;
+package ch.mobility.mobocpp.kafka;
 
+import ch.mobility.mobocpp.ui.ServerMain;
 import ch.mobility.ocpp2mob.CSResponse;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
@@ -14,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-public class AvroConsumer<T extends GenericRecord>
+class AvroConsumer<T extends GenericRecord>
 {
     private static final String RESPONSE_INFO = "ResponseInfo";
 

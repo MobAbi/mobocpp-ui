@@ -1,5 +1,6 @@
 package ch.mobility.mobocpp.ui;
 
+import ch.mobility.mobocpp.kafka.AvroProsumer;
 import ch.mobility.ocpp2mob.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @WebServlet("/detail")
 public class DetailServlet extends HttpServlet {
@@ -20,12 +22,8 @@ public class DetailServlet extends HttpServlet {
 
     private static String UNBEKANNT = "Unbekannt";
 
-    private AvroProducer getAvroProducer() {
-        return AvroProducer.get();
-    }
-
-    private AvroConsumer getAvroConsumer() {
-        return AvroConsumer.get();
+    private AvroProsumer getAvroProsumer() {
+        return AvroProsumer.get();
     }
 
     @Override
@@ -34,8 +32,7 @@ public class DetailServlet extends HttpServlet {
 
     @Override
     public void destroy() {
-        AvroProducer.get().close();
-        AvroConsumer.get().close();
+        AvroProsumer.get().close();
     }
 
     private void checkParams(HttpServletRequest request) {
@@ -59,8 +56,7 @@ public class DetailServlet extends HttpServlet {
         checkParams(request);
         final String id = request.getParameter(PARAM_ID);
 //        final Integer connectorId = Integer.valueOf(request.getParameter(PARAM_CONNECTOR_ID));
-        getAvroProducer().requestStatusForId(id, null, Integer.valueOf(5));
-        final List<CSStatusForIdResponse> receivedStatusForIdResponse = getAvroConsumer().receive(CSStatusForIdResponse.class, 3000, 1);
+        final List<CSStatusForIdResponse> receivedStatusForIdResponse = getAvroProsumer().getStatusForId(id, null, Integer.valueOf(5));
         if (receivedStatusForIdResponse.size() > 1) {
             throw new IllegalStateException("Expected only one Response, received: " + receivedStatusForIdResponse.size());
         }

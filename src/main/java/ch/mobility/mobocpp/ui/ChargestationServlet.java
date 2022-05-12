@@ -1,5 +1,6 @@
 package ch.mobility.mobocpp.ui;
 
+import ch.mobility.mobocpp.kafka.AvroProsumer;
 import ch.mobility.ocpp2mob.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -8,37 +9,22 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @WebServlet("/cs")
 public class ChargestationServlet extends HttpServlet {
 
-//    private AvroProducer avroProducer = null;
-//    private AvroConsumer avroConsumer = null;
-
-    private AvroProducer getAvroProducer() {
-        return AvroProducer.get();
-    }
-
-    private AvroConsumer getAvroConsumer() {
-        return AvroConsumer.get();
+    private AvroProsumer getAvroProsumer() {
+        return AvroProsumer.get();
     }
 
     @Override
     public void init() {
-//        avroProducer = new AvroProducer();
-//        avroConsumer = new AvroConsumer();
     }
 
     @Override
     public void destroy() {
-//        if (avroProducer != null) {
-//            avroProducer.close();
-//        }
-//        if (avroConsumer != null) {
-//            avroConsumer.close();
-//        }
-        AvroProducer.get().close();
-        AvroConsumer.get().close();
+        AvroProsumer.get().close();
     }
 
     @Override
@@ -62,8 +48,7 @@ public class ChargestationServlet extends HttpServlet {
             response.getWriter().println(getHead(csId));
             response.getWriter().println("<body>");
 
-            getAvroProducer().requestStatusForId(csId, null, 10);
-            List<CSStatusForIdResponse> receiveDetail = getAvroConsumer().receive(CSStatusForIdResponse.class, 3000, 1);
+            final List<CSStatusForIdResponse> receiveDetail = getAvroProsumer().getStatusForId(csId, null, null);
             if (receiveDetail.size() != 1) {
                 response.getWriter().println("Error fetching data for Chargingstation " + csId);
             } else {

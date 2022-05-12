@@ -1,5 +1,6 @@
 package ch.mobility.mobocpp.ui;
 
+import ch.mobility.mobocpp.kafka.AvroProsumer;
 import ch.mobility.ocpp2mob.CPStatusHistoryEntry;
 import ch.mobility.ocpp2mob.CSStatusForIdResponse;
 import com.google.gson.Gson;
@@ -11,39 +12,24 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.UUID;
 
 @WebServlet("/csJ")
 public class ChargestationServletJSON extends HttpServlet {
 
-//    private AvroProducer avroProducer = null;
-//    private AvroConsumer avroConsumer = null;
-
-    private AvroProducer getAvroProducer() {
-        return AvroProducer.get();
-    }
-
-    private AvroConsumer getAvroConsumer() {
-        return AvroConsumer.get();
-    }
-
     private Gson gson = new Gson();
+
+    private AvroProsumer getAvroProsumer() {
+        return AvroProsumer.get();
+    }
 
     @Override
     public void init() {
-//        avroProducer = new AvroProducer();
-//        avroConsumer = new AvroConsumer();
     }
 
     @Override
     public void destroy() {
-//        if (avroProducer != null) {
-//            avroProducer.close();
-//        }
-//        if (avroConsumer != null) {
-//            avroConsumer.close();
-//        }
-        AvroProducer.get().close();
-        AvroConsumer.get().close();
+        AvroProsumer.get().close();
     }
 
     public static class Error {
@@ -67,8 +53,7 @@ public class ChargestationServletJSON extends HttpServlet {
         if (csArray != null && csArray.length > 0) {
             String csId = csArray[0];
 
-            getAvroProducer().requestStatusForId(csId, null, null);
-            List<CSStatusForIdResponse> receiveDetail = getAvroConsumer().receive(CSStatusForIdResponse.class, 3000, 1);
+            final List<CSStatusForIdResponse> receiveDetail = getAvroProsumer().getStatusForId(csId, null, null);
             if (receiveDetail.size() != 1) {
                 Error error = new Error("Error fetching data for Chargingstation " + csId);
                 String json = this.gson.toJson(error);

@@ -1,5 +1,6 @@
 package ch.mobility.mobocpp.ui;
 
+import ch.mobility.mobocpp.kafka.AvroProsumer;
 import ch.mobility.ocpp2mob.CSStatusConnected;
 import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
 import ch.mobility.ocpp2mob.ChargingStateEnum;
@@ -11,10 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @WebServlet("/list")
 public class ListServlet extends HttpServlet {
@@ -53,12 +51,8 @@ public class ListServlet extends HttpServlet {
         stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtC, "46.2937841,7.8794028", "Migros", "3930", "Visp"));
     }
 
-    private AvroProducer getAvroProducer() {
-        return AvroProducer.get();
-    }
-
-    private AvroConsumer getAvroConsumer() {
-        return AvroConsumer.get();
+    private AvroProsumer getAvroProsumer() {
+        return AvroProsumer.get();
     }
 
     @Override
@@ -67,8 +61,7 @@ public class ListServlet extends HttpServlet {
 
     @Override
     public void destroy() {
-        AvroProducer.get().close();
-        AvroConsumer.get().close();
+        AvroProsumer.get().close();
     }
 
     private CSStammdaten getStammdaten(String key) {
@@ -95,8 +88,7 @@ public class ListServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        getAvroProducer().requestStatusConnected();
-        List<CSStatusConnectedResponse> receiveConnected = getAvroConsumer().receive(CSStatusConnectedResponse.class, 5000, 1);
+        final List<CSStatusConnectedResponse> receiveConnected = getAvroProsumer().getStatusConnected();
         for (CSStatusConnectedResponse csStatusConnectedResponse : receiveConnected) {
             for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
                 lastContact.put(csStatusConnected.getId(), DateTimeHelper.parse(csStatusConnected.getLastContact()));
