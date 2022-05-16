@@ -2,6 +2,32 @@ body {
     background-color: #e6f2ff;
 }
 
+table {
+    border-collapse: collapse;
+    /*border-collapse:separate;*/
+    /*border:solid black 3px;*/
+    /*border-radius:25px;*/
+
+    text-align: center;
+    vertical-align: middle;
+    width: 100%;
+}
+
+thead {
+    background-color: #333;
+    color: white;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+thead th {
+    /* width: 11%; */
+    /* width: available;*/
+}
+
 .top {
     /*background-color: lightblue;*/
     display: flex;
@@ -67,11 +93,47 @@ body {
 
 .bottom {
     /*background-color: lightgreen;*/
+    display: inline;
+    /*justify-content: center;*/
+    width: 98%;
+    padding: 1px;
+    margin: 1px;
+}
+
+.statushistoryhead {
     display: flex;
     justify-content: center;
-    width: 98%;
-    padding: 8px;
-    margin: 5px;
+}
+
+/* Style the collapsible content. Note: hidden by default */
+.statushistorycontent {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    /*background-color: lightgreen;*/
+    /*display: flex;*/
+    /*justify-content: center;*/
+    width: 100%;
+    padding: 1px;
+    margin: 1px;
+}
+
+.transhistoryhead {
+    display: flex;
+    justify-content: center;
+}
+
+/* Style the collapsible content. Note: hidden by default */
+.transhistorycontent {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    /*background-color: lightgreen;*/
+    /*display: flex;*/
+    /*justify-content: center;*/
+    width: 100%;
+    padding: 1px;
+    margin: 1px;
 }
 
 .button {

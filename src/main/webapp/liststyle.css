@@ -13,6 +13,21 @@ table {
 	width: 100%;
 }
 
+thead {
+	background-color: #333;
+	color: white;
+}
+
+th, td {
+	border: 1px solid black;
+	padding: 5px;
+}
+
+thead th {
+	/* width: 11%; */
+	/* width: available;*/
+}
+
 .controlInput {
 	/*border-style: solid;*/
 	/*border-width: 3px;*/
@@ -48,17 +63,3 @@ table {
 	display: inline-block;
 }
 
-thead {
-	background-color: #333;
-	color: white;
-}
-
-th, td {
-	border: 1px solid black;
-	padding: 5px;
-}
-
-thead th {
-	/* width: 11%; */
-	/* width: available;*/
-}

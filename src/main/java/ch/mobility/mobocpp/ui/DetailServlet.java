@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 @WebServlet("/detail")
 public class DetailServlet extends HttpServlet {
@@ -103,7 +102,36 @@ public class DetailServlet extends HttpServlet {
     }
 
     private String getJS() {
-        return "function reload() {\n" +
+        return "var coll = document.getElementsByClassName(\"collapsible\");\n" +
+               "var i;\n" +
+               "for (i = 0; i < coll.length; i++) {\n" +
+               "   coll[i].addEventListener(\"click\", function() {\n" +
+               "     this.classList.toggle(\"active\");\n" +
+               "     var content = this.nextElementSibling;\n" +
+               "     if (content.style.display === \"block\") {\n" +
+               "       content.style.display = \"none\";\n" +
+               "     } else {\n" +
+               "       content.style.display = \"block\";\n" +
+               "     }\n" +
+               "   });\n" +
+               "}\n" +
+                "function collapsibleStatusHistory() {\n" +
+                "  var history = document.getElementById(\"statushistorycontent\");\n" +
+                "  if (history.style.display === \"block\") {\n" +
+                "    history.style.display = \"none\";\n" +
+                "  } else {\n" +
+                "    history.style.display = \"block\";\n" +
+                "  }\n" +
+                "}\n" +
+                "function collapsibleTransHistory() {\n" +
+                "  var history = document.getElementById(\"transhistorycontent\");\n" +
+                "  if (history.style.display === \"block\") {\n" +
+                "    history.style.display = \"none\";\n" +
+                "  } else {\n" +
+                "    history.style.display = \"block\";\n" +
+                "  }\n" +
+                "}\n" +
+               "function reload() {\n" +
                "  window.location.reload();\n" +
                "}\n";
     }
@@ -162,35 +190,86 @@ public class DetailServlet extends HttpServlet {
         return result;
     }
 
+    private String getTD(int value) {
+        return getTD(String.valueOf(value));
+    }
+
+    private String getTD(String value) {
+        return "    <td>" + value + "</td>";
+    }
+
     private String getBottom(CSStatusForIdResponse csStatusForIdResponse) {
         String result = "";
         if (csStatusForIdResponse != null) {
             final CSStatusDetail status = csStatusForIdResponse.getStatus();
+
+            // Statushistorie
+            result += "<div class=\"statushistoryhead\"><button class=\"button\" onClick=\"collapsibleStatusHistory()\">&Ouml;ffne Statushistorie</button></div>";
+            result += "<div class=\"statushistorycontent\" id=\"statushistorycontent\">";
             for (CPStatus cpStatus : status.getCPStatusList()) {
                 if (cpStatus.getConnectorId() != 0) {
                     if (!cpStatus.getCPStatusHistoryList().isEmpty()) {
-                        result += "<br>Status History";
+                        result += "<table id=\"statushistorytable\">\n" +
+                                " <thead>\n" +
+                                "   <tr>\n" +
+                                "     <th>Zeitstempel</th>\n" +
+                                "     <th>Connector Status</th>\n" +
+                                "     <th>Charging State</th>\n" +
+                                "     <th>Error code</th>\n" +
+                                "     <th>Error info</th>\n" +
+                                "  </tr>\n" +
+                                " </thead>\n" +
+                                " <tbody>\n";
                         for (CPStatusHistoryEntry hentry : cpStatus.getCPStatusHistoryList()) {
-                            String line = "Zeitstempel: " + DateTimeHelper.humanReadable(DateTimeHelper.parse(hentry.getTimestamp())) +
-                                    ", Connector Status: " + hentry.getConnectorStatus() +
-                                    ", Charging State: " + hentry.getChargingState() +
-                                    ", Error code: " + (NO_ERROR.equals(hentry.getErrorCode()) ? "" : hentry.getErrorCode()) +
-                                    ", Error info: " + (NO_INFO.equals(hentry.getErrorInfo()) ? "" : hentry.getErrorInfo());
-                            result += line + "<br>";
+                            result += "   <tr>\n";
+                            result += getTD(DateTimeHelper.humanReadable(DateTimeHelper.parse(hentry.getTimestamp())));
+                            result += getTD(hentry.getConnectorStatus().toString());
+                            result += getTD(hentry.getChargingState().toString());
+                            result += getTD((NO_ERROR.equals(hentry.getErrorCode()) ? "" : hentry.getErrorCode()));
+                            result += getTD((NO_INFO.equals(hentry.getErrorInfo()) ? "" : hentry.getErrorInfo()));
+                            result += "   </tr>\n";
                         }
-                    }
-                    if (!cpStatus.getCPTransactionHistoryList().isEmpty()) {
-                        result += "<br>Transakton History";
-                        for (CPTransactionHistoryEntry tentry : cpStatus.getCPTransactionHistoryList()) {
-                            String line = "Start: " + DateTimeHelper.humanReadable(DateTimeHelper.parse(tentry.getStartTimestamp())) +
-                                    ", Stop: " + DateTimeHelper.humanReadable(DateTimeHelper.parse(tentry.getStopTimestamp())) +
-                                    ", Startwert: " + tentry.getStartValue() +
-                                    ", Stopwert: " + tentry.getStopValue();
-                            result += line + "<br>";
-                        }
+                        result += " </tbody>\n" +
+                                "</table>";
                     }
                 }
             }
+            result += "</div>";
+
+            // Transaktionshistorie
+            result += "<div class=\"transhistoryhead\"><button class=\"button\" onClick=\"collapsibleTransHistory()\">&Ouml;ffne Transaktionshistorie</button></div>";
+            result += "<div class=\"transhistorycontent\" id=\"transhistorycontent\">";
+            for (CPStatus cpStatus : status.getCPStatusList()) {
+                if (cpStatus.getConnectorId() != 0) {
+                    if (!cpStatus.getCPTransactionHistoryList().isEmpty()) {
+                        result += "<table id=\"transhistorytable\">\n" +
+                                " <thead>\n" +
+                                "   <tr>\n" +
+                                "     <th>Start</th>\n" +
+                                "     <th>Stop</th>\n" +
+                                "     <th>Startwert</th>\n" +
+                                "     <th>Stopwert</th>\n" +
+                                "     <th>Total</th>\n" +
+                                "  </tr>\n" +
+                                " </thead>\n" +
+                                " <tbody>\n";
+                        for (CPTransactionHistoryEntry tentry : cpStatus.getCPTransactionHistoryList()) {
+                            final int total = tentry.getStopValue() - tentry.getStartValue();
+                            result += "   <tr>\n";
+                            result += getTD(DateTimeHelper.humanReadable(DateTimeHelper.parse(tentry.getStartTimestamp())));
+                            result += getTD(DateTimeHelper.humanReadable(DateTimeHelper.parse(tentry.getStopTimestamp())));
+                            result += getTD(tentry.getStartValue());
+                            result += getTD(tentry.getStopValue());
+                            result += getTD(total);
+                            result += "   </tr>\n";
+                        }
+                        result += " </tbody>\n" +
+                                "</table>";
+                    }
+                }
+            }
+            result += "</div>";
+
         }
         return result;
     }

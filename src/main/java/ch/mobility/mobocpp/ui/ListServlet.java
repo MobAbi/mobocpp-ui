@@ -394,7 +394,7 @@ public class ListServlet extends HttpServlet {
                 "     <th onclick=\"sortTable(4)\">Ort</th>\n" +
                 "     <th onclick=\"sortTable(5)\">Standort</th>\n" +
                 "     <th onclick=\"sortTable(6)\">Status</th>\n" +
-                "     <th onclick=\"sortTable(7)\">Farbe</th>\n" +
+                "     <th onclick=\"sortTable(7)\">-</th>\n" +
                 "     <th onclick=\"sortTable(8)\">Laden</th>\n" +
                 "     <th onclick=\"sortTable(9)\">Letzter Kontakt</th>\n" +
                 "  </tr>\n" +
