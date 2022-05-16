@@ -87,7 +87,7 @@ class AvroProducer {
         send(request);
     }
 
-    private static GenericRecord requestStart(String messageId, String id, Integer connectorId, String tagId, Integer maxCurrent) {
+    private void requestStart(String messageId, String id, Integer connectorId, String tagId, Integer maxCurrent) {
         CSStartChargingRequest request = CSStartChargingRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)
@@ -95,53 +95,53 @@ class AvroProducer {
                 .setTagId(tagId)
                 .setMaxCurrent(maxCurrent)
                 .build();
-        return request;
+        send(request);
     }
 
-    private static GenericRecord requestStop(String messageId, String id, Integer connectorId) {
+    private void requestStop(String messageId, String id, Integer connectorId) {
         CSStopChargingRequest request = CSStopChargingRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .build();
-        return request;
+        send(request);
     }
 
-    private static GenericRecord requestReset(String messageId, String id) {
+    public void requestReset(String messageId, String id) {
         CSResetRequest request = CSResetRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)
                 .build();
-        return request;
+        send(request);
     }
 
-    private static GenericRecord requestUnlock(String messageId, String id, Integer connectorId) {
+    public void requestUnlock(String messageId, String id, Integer connectorId) {
         CSUnlockRequest request = CSUnlockRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .build();
-        return request;
+        send(request);
     }
 
-    private static GenericRecord requestProfile(String messageId, String id, Integer connectorId, Integer maxCurrent) {
+    private void requestProfile(String messageId, String id, Integer connectorId, Integer maxCurrent) {
         CSChangeChargingCurrentRequest request = CSChangeChargingCurrentRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .setMaxCurrent(maxCurrent)
                 .build();
-        return request;
+        send(request);
     }
 
-    private static GenericRecord requestTrigger(String messageId, String id, Integer connectorId, String trigger) {
+    public void requestTrigger(String messageId, String id, Integer connectorId, String trigger) {
         CSTriggerRequest request = CSTriggerRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)
                 .setConnectorId(connectorId)
                 .setTriggertype(TriggerKeywordsV1XEnum.valueOf(trigger.toUpperCase()))
                 .build();
-        return request;
+        send(request);
     }
 
     private static void log(String message) {

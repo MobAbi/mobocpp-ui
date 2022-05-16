@@ -45,7 +45,7 @@ public class DetailServlet extends HttpServlet {
         }
     }
 
-    private String getInfolabelText() {
+    private String getStandardInfolabelText() {
         return "Letzte Aktualisierung: " + DateTimeHelper.humanReadable(Instant.now());
     }
 
@@ -73,11 +73,11 @@ public class DetailServlet extends HttpServlet {
         response.getWriter().println("   <button class=\"button\" onClick=\"window.location.href = '/list';\"> < Zur&uuml;ck zur &Uuml;bersicht</button>");
         response.getWriter().println(" </div>");
         response.getWriter().println(" <div class=\"maincontrol\">");
-        response.getWriter().println("   <button class=\"button\" onClick=\"\">Neustart</button>");
-        response.getWriter().println("   <button class=\"button\" onClick=\"\">Kabel freigeben</button>");
-        response.getWriter().println("   <button class=\"button\" onClick=\"\">Trigger Statusupdate</button>");
+        response.getWriter().println("   <button class=\"button\" onClick=\"doAction('reset','" + id + "')\">Neustart</button>");
+        response.getWriter().println("   <button class=\"button\" onClick=\"doAction('unlock','" + id + "')\">Kabel freigeben</button>");
+        response.getWriter().println("   <button class=\"button\" onClick=\"doAction('triggerstatus','" + id + "')\">Trigger Statusupdate</button>");
         response.getWriter().println("   <button class=\"button\" onClick=\"reload()\">Ansicht Aktualisieren</button>");
-        response.getWriter().println("     <label class=\"infolabel\">" + getInfolabelText() + "</label>");
+        response.getWriter().println("   <label class=\"infolabel\" id=\"infolabel\">" + getStandardInfolabelText() + "</label>");
         response.getWriter().println(" </div>");
         response.getWriter().println(" <div class=\"main\">");
         response.getWriter().println("   <div class=\"mainleft\">");
@@ -102,18 +102,16 @@ public class DetailServlet extends HttpServlet {
     }
 
     private String getJS() {
-        return "var coll = document.getElementsByClassName(\"collapsible\");\n" +
-               "var i;\n" +
-               "for (i = 0; i < coll.length; i++) {\n" +
-               "   coll[i].addEventListener(\"click\", function() {\n" +
-               "     this.classList.toggle(\"active\");\n" +
-               "     var content = this.nextElementSibling;\n" +
-               "     if (content.style.display === \"block\") {\n" +
-               "       content.style.display = \"none\";\n" +
-               "     } else {\n" +
-               "       content.style.display = \"block\";\n" +
-               "     }\n" +
-               "   });\n" +
+        return "async function doAction(actiontyp, cs) {\n" +
+               "   console.log('doAction: ', actiontyp, cs);\n" +
+                "  const url = 'action?actiontyp=' + actiontyp + '&cs=' + cs;\n" +
+                "  const response = await fetch(url);\n" +
+                "  const jsonResult = await response.json();\n" +
+                "  console.log('JSONResult: ', jsonResult);\n" +
+                "  if (jsonResult.status !== undefined) {\n" +
+                "    var infolabel = document.getElementById(\"infolabel\");\n" +
+                "    infolabel.innerText = jsonResult.status;\n" +
+                "  }" +
                "}\n" +
                 "function collapsibleStatusHistory() {\n" +
                 "  var history = document.getElementById(\"statushistorycontent\");\n" +
@@ -176,14 +174,20 @@ public class DetailServlet extends HttpServlet {
             for (CPStatus cpStatus : status.getCPStatusList()) {
                 if (cpStatus.getConnectorId() != 0) {
                     result += addLine("<b>Connector</b>", cpStatus.getConnectorId());
-                    result += addLine("Connector Status", cpStatus.getConnectorStatus().toString());
-                    result += addLine("Charging State", cpStatus.getChargingState().toString());
+                    result += addLine("Connector Status", cpStatus.getConnectorStatus().name());
+                    result += addLine("Charging State", (cpStatus.getChargingState() == null ? "" : cpStatus.getChargingState().name()));
                     result += addLine("Current charged energy", cpStatus.getCurrentChargedEnergy());
                     result += addLine("Current charging Ampere L1", cpStatus.getCurrentChargingAmpereL1());
                     result += addLine("Current charging Ampere L2", cpStatus.getCurrentChargingAmpereL2());
                     result += addLine("Current charging Ampere L3", cpStatus.getCurrentChargingAmpereL3());
-                    result += addLine("Error code", (NO_ERROR.equals(cpStatus.getErrorCode()) ? "" : cpStatus.getErrorCode()));
-                    result += addLine("Error info", (NO_INFO.equals(cpStatus.getErrorInfo())) ? "" : cpStatus.getErrorInfo());
+                    if (NO_ERROR.equals(cpStatus.getErrorCode())) {
+                        if (!NO_INFO.equals(cpStatus.getErrorInfo())) {
+                            result += addLine("Information", cpStatus.getErrorInfo());
+                        }
+                    } else {
+                        result += addLine("Error code", cpStatus.getErrorCode());
+                        result += addLine("Error Information", cpStatus.getErrorInfo());
+                    }
                 }
             }
         }
@@ -204,12 +208,14 @@ public class DetailServlet extends HttpServlet {
             final CSStatusDetail status = csStatusForIdResponse.getStatus();
 
             // Statushistorie
-            result += "<div class=\"statushistoryhead\"><button class=\"button\" onClick=\"collapsibleStatusHistory()\">&Ouml;ffne Statushistorie</button></div>";
-            result += "<div class=\"statushistorycontent\" id=\"statushistorycontent\">";
+            result += "<div class=\"statushistory\">";
+            result += " <div class=\"statushistoryhead\">";
+            result += " <button class=\"button\" onClick=\"collapsibleStatusHistory()\">Zeige Statushistorie</button></div>";
+            result += " <div class=\"statushistorycontent\" id=\"statushistorycontent\">";
             for (CPStatus cpStatus : status.getCPStatusList()) {
                 if (cpStatus.getConnectorId() != 0) {
                     if (!cpStatus.getCPStatusHistoryList().isEmpty()) {
-                        result += "<table id=\"statushistorytable\">\n" +
+                        result += " <table id=\"statushistorytable\">\n" +
                                 " <thead>\n" +
                                 "   <tr>\n" +
                                 "     <th>Zeitstempel</th>\n" +
@@ -218,27 +224,30 @@ public class DetailServlet extends HttpServlet {
                                 "     <th>Error code</th>\n" +
                                 "     <th>Error info</th>\n" +
                                 "  </tr>\n" +
-                                " </thead>\n" +
-                                " <tbody>\n";
+                                "  </thead>\n" +
+                                "  <tbody>\n";
                         for (CPStatusHistoryEntry hentry : cpStatus.getCPStatusHistoryList()) {
                             result += "   <tr>\n";
                             result += getTD(DateTimeHelper.humanReadable(DateTimeHelper.parse(hentry.getTimestamp())));
-                            result += getTD(hentry.getConnectorStatus().toString());
-                            result += getTD(hentry.getChargingState().toString());
+                            result += getTD(hentry.getConnectorStatus().name());
+                            result += getTD((hentry.getChargingState() == null ? "": hentry.getChargingState().name()));
                             result += getTD((NO_ERROR.equals(hentry.getErrorCode()) ? "" : hentry.getErrorCode()));
                             result += getTD((NO_INFO.equals(hentry.getErrorInfo()) ? "" : hentry.getErrorInfo()));
                             result += "   </tr>\n";
                         }
                         result += " </tbody>\n" +
-                                "</table>";
+                                " </table>";
                     }
                 }
             }
+            result += " </div>";
             result += "</div>";
 
             // Transaktionshistorie
-            result += "<div class=\"transhistoryhead\"><button class=\"button\" onClick=\"collapsibleTransHistory()\">&Ouml;ffne Transaktionshistorie</button></div>";
-            result += "<div class=\"transhistorycontent\" id=\"transhistorycontent\">";
+            result += "<div class=\"transhistory\">";
+            result += " <div class=\"transhistoryhead\">";
+            result += " <button class=\"button\" onClick=\"collapsibleTransHistory()\">Zeige Ladehistorie</button></div>";
+            result += " <div class=\"transhistorycontent\" id=\"transhistorycontent\">";
             for (CPStatus cpStatus : status.getCPStatusList()) {
                 if (cpStatus.getConnectorId() != 0) {
                     if (!cpStatus.getCPTransactionHistoryList().isEmpty()) {
@@ -268,8 +277,8 @@ public class DetailServlet extends HttpServlet {
                     }
                 }
             }
+            result += " </div>";
             result += "</div>";
-
         }
         return result;
     }

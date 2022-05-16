@@ -1,7 +1,7 @@
 package ch.mobility.mobocpp.kafka;
 
-import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
-import ch.mobility.ocpp2mob.CSStatusForIdResponse;
+import ch.mobility.mob2ocpp.TriggerKeywordsV1XEnum;
+import ch.mobility.ocpp2mob.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -51,6 +51,30 @@ public class AvroProsumer {
             final String messageId = UUID.randomUUID().toString();
             getAvroProducer().requestStatusForId(messageId, csId, connectorId, daysOfHistoryData);
             return getAvroConsumer().receive(CSStatusForIdResponse.class, messageId, wait, maxMobOCPPBackends);
+        }
+    }
+
+    public List<CSChangeChargingCurrentResponse> doReset(String csId) {
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestReset(messageId, csId);
+            return getAvroConsumer().receive(CSChangeChargingCurrentResponse.class, messageId, wait, maxMobOCPPBackends);
+        }
+    }
+
+    public List<CSUnlockResponse> doUnlock(String csId) {
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestUnlock(messageId, csId, 1); // TODO Parameter
+            return getAvroConsumer().receive(CSUnlockResponse.class, messageId, wait, maxMobOCPPBackends);
+        }
+    }
+
+    public List<CSTriggerResponse> doTriggerStatus(String csId) {
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestTrigger(messageId, csId, 1, TriggerKeywordsV1XEnum.STATUS.name()); // TODO Parameter
+            return getAvroConsumer().receive(CSTriggerResponse.class, messageId, wait, maxMobOCPPBackends);
         }
     }
 }

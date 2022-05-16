@@ -93,11 +93,23 @@ thead th {
 
 .bottom {
     /*background-color: lightgreen;*/
+    /*border-style: solid;*/
+    /*border-width: 2px;*/
+    /*border-radius: 10px;*/
     display: inline;
-    /*justify-content: center;*/
+    justify-content: center;
+    /*width: 98%;*/
+    padding: 0px;
+    margin: 0px;
+}
+
+.statushistory {
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
     width: 98%;
-    padding: 1px;
-    margin: 1px;
+    padding: 8px;
+    margin: 5px;
 }
 
 .statushistoryhead {
@@ -116,6 +128,15 @@ thead th {
     width: 100%;
     padding: 1px;
     margin: 1px;
+}
+
+.transhistory {
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    width: 98%;
+    padding: 8px;
+    margin: 5px;
 }
 
 .transhistoryhead {
