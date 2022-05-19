@@ -87,7 +87,7 @@ class AvroProducer {
         send(request);
     }
 
-    private void requestStart(String messageId, String id, Integer connectorId, String tagId, Integer maxCurrent) {
+    public void requestStart(String messageId, String id, Integer connectorId, String tagId, Integer maxCurrent) {
         CSStartChargingRequest request = CSStartChargingRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)
@@ -98,7 +98,7 @@ class AvroProducer {
         send(request);
     }
 
-    private void requestStop(String messageId, String id, Integer connectorId) {
+    public void requestStop(String messageId, String id, Integer connectorId) {
         CSStopChargingRequest request = CSStopChargingRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)
@@ -124,7 +124,7 @@ class AvroProducer {
         send(request);
     }
 
-    private void requestProfile(String messageId, String id, Integer connectorId, Integer maxCurrent) {
+    public void requestProfile(String messageId, String id, Integer connectorId, Integer maxCurrent) {
         CSChangeChargingCurrentRequest request = CSChangeChargingCurrentRequest.newBuilder()
                 .setRequestInfo(request(messageId))
                 .setId(id)

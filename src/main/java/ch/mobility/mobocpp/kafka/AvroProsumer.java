@@ -6,19 +6,22 @@ import ch.mobility.ocpp2mob.*;
 import java.util.List;
 import java.util.UUID;
 
-public class AvroProsumer {
+public class AvroProsumer implements Runnable {
+    private static final long MAX_WAIT_FOR_RESPONSE_MS = 3000L;
+    private static final int MAX_NUMBER_OF_OCPP_BACKENDS = 5;
 
     private static AvroProsumer INSTANCE = null;
 
     public static synchronized AvroProsumer get() {
         if (INSTANCE == null) {
-            INSTANCE = new AvroProsumer(3000, 1);
+            INSTANCE = new AvroProsumer();
         }
         return INSTANCE;
     }
 
     final long wait;
-    final int maxMobOCPPBackends;
+    int maxMobOCPPBackends;
+    boolean run;
 
     private AvroProducer getAvroProducer() {
         return AvroProducer.get();
@@ -28,17 +31,20 @@ public class AvroProsumer {
         return AvroConsumer.get();
     }
 
-    private AvroProsumer(long wait, int maxMobOCPPBackends) {
-        this.wait = wait;
-        this.maxMobOCPPBackends = maxMobOCPPBackends;
+    private AvroProsumer() {
+        this.wait = MAX_WAIT_FOR_RESPONSE_MS;
+        this.maxMobOCPPBackends = MAX_NUMBER_OF_OCPP_BACKENDS;
+        this.run = true;
+        new Thread(this).start();
     }
 
     public void close() {
+        this.run = false;
         AvroProducer.get().close();
         AvroConsumer.get().close();
     }
 
-    public List<CSStatusConnectedResponse> getStatusConnected() {
+    private List<CSStatusConnectedResponse> getStatusConnected(long wait, int maxMobOCPPBackends) {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
             getAvroProducer().requestStatusConnected(messageId);
@@ -46,11 +52,15 @@ public class AvroProsumer {
         }
     }
 
+    public List<CSStatusConnectedResponse> getStatusConnected() {
+        return getStatusConnected(this.wait, this.maxMobOCPPBackends);
+    }
+
     public List<CSStatusForIdResponse> getStatusForId(String csId, Integer connectorId, Integer daysOfHistoryData) {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
             getAvroProducer().requestStatusForId(messageId, csId, connectorId, daysOfHistoryData);
-            return getAvroConsumer().receive(CSStatusForIdResponse.class, messageId, wait, maxMobOCPPBackends);
+            return getAvroConsumer().receive(CSStatusForIdResponse.class, messageId, wait, 1);
         }
     }
 
@@ -58,7 +68,7 @@ public class AvroProsumer {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
             getAvroProducer().requestReset(messageId, csId);
-            return getAvroConsumer().receive(CSChangeChargingCurrentResponse.class, messageId, wait, maxMobOCPPBackends);
+            return getAvroConsumer().receive(CSChangeChargingCurrentResponse.class, messageId, wait, 1);
         }
     }
 
@@ -66,7 +76,7 @@ public class AvroProsumer {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
             getAvroProducer().requestUnlock(messageId, csId, 1); // TODO Parameter
-            return getAvroConsumer().receive(CSUnlockResponse.class, messageId, wait, maxMobOCPPBackends);
+            return getAvroConsumer().receive(CSUnlockResponse.class, messageId, wait, 1);
         }
     }
 
@@ -74,7 +84,48 @@ public class AvroProsumer {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
             getAvroProducer().requestTrigger(messageId, csId, 1, TriggerKeywordsV1XEnum.STATUS.name()); // TODO Parameter
-            return getAvroConsumer().receive(CSTriggerResponse.class, messageId, wait, maxMobOCPPBackends);
+            return getAvroConsumer().receive(CSTriggerResponse.class, messageId, wait, 1);
+        }
+    }
+
+    public List<CSChangeChargingCurrentResponse> doProfile(String csId, Integer maxCurrent) {
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestProfile(messageId, csId, 1, maxCurrent);
+            return getAvroConsumer().receive(CSChangeChargingCurrentResponse.class, messageId, wait, 1);
+        }
+    }
+
+    public List<CSStartChargingResponse> doStart(String csId) {
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestStart(messageId, csId, 1, "freecharging", null);
+            return getAvroConsumer().receive(CSStartChargingResponse.class, messageId, wait, 1);
+        }
+    }
+
+    public List<CSStopChargingResponse> doStop(String csId) {
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestStop(messageId, csId, null);
+            return getAvroConsumer().receive(CSStopChargingResponse.class, messageId, wait, 1);
+        }
+    }
+
+    @Override
+    public void run() {
+        while (run) {
+            final List<CSStatusConnectedResponse> statusConnected =
+                    getStatusConnected(MAX_WAIT_FOR_RESPONSE_MS, MAX_NUMBER_OF_OCPP_BACKENDS);
+            if (!statusConnected.isEmpty()) {
+                if (this.maxMobOCPPBackends != statusConnected.size()) {
+                    System.out.println("Anzahl verbundener OCPP-Backends geaendert: von " + this.maxMobOCPPBackends + " zu " + statusConnected.size());
+                    this.maxMobOCPPBackends = statusConnected.size();
+                } else {
+                    System.out.println("Anzahl verbundener OCPP-Backends unveraendert " + this.maxMobOCPPBackends);
+                }
+            }
+            try { Thread.sleep(60 * 1000); } catch (InterruptedException e) {}
         }
     }
 }

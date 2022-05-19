@@ -75,7 +75,29 @@ public class DetailServlet extends HttpServlet {
         response.getWriter().println(" <div class=\"maincontrol\">");
         response.getWriter().println("   <button class=\"button\" onClick=\"doAction('reset','" + id + "')\">Neustart</button>");
         response.getWriter().println("   <button class=\"button\" onClick=\"doAction('unlock','" + id + "')\">Kabel freigeben</button>");
-        response.getWriter().println("   <button class=\"button\" onClick=\"doAction('triggerstatus','" + id + "')\">Trigger Statusupdate</button>");
+        response.getWriter().println("   <button class=\"button\" onClick=\"doAction('triggerstatus','" + id + "')\">Statusupdate anfordern</button>");
+        response.getWriter().println("   <div class=\"dropdown\">");
+        response.getWriter().println("     <button class=\"dropdownbutton\">Ladestrom setzen</button>");
+        response.getWriter().println("     <div class=\"dropdown-content\">");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('0','" + id + "')\">Suspend (0A)</label>");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('6','" + id + "')\">6 Ampere</label>");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('8','" + id + "')\">8 Ampere</label>");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('10','" + id + "')\">10 Ampere</label>");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('12','" + id + "')\">12 Ampere</label>");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('14','" + id + "')\">14 Ampere</label>");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('16','" + id + "')\">16 Ampere</label>");
+        response.getWriter().println("     </div>");
+        response.getWriter().println("   </div>");
+        //        response.getWriter().println("    <button class=\"button\">Ladevorgang...</button>");
+
+        response.getWriter().println("   <div class=\"dropdown\">");
+        response.getWriter().println("     <button class=\"dropdownbutton\">Ladevorgang...</button>");
+        response.getWriter().println("     <div class=\"dropdown-content\">");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doAction('start','" + id + "')\">Starten</label>");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doAction('stop','" + id + "')\">Stoppen</label>");
+        response.getWriter().println("     </div>");
+        response.getWriter().println("   </div>");
+
         response.getWriter().println("   <button class=\"button\" onClick=\"reload()\">Ansicht Aktualisieren</button>");
         response.getWriter().println("   <label class=\"infolabel\" id=\"infolabel\">" + getStandardInfolabelText() + "</label>");
         response.getWriter().println(" </div>");
@@ -113,6 +135,17 @@ public class DetailServlet extends HttpServlet {
                 "    infolabel.innerText = jsonResult.status;\n" +
                 "  }" +
                "}\n" +
+                "async function doCurrent(limit, cs) {\n" +
+                "  console.log('doCurrent: ', limit, cs);\n" +
+                "  const url = 'action?actiontyp=current&limit=' + limit + '&cs=' + cs;\n" +
+                "  const response = await fetch(url);\n" +
+                "  const jsonResult = await response.json();\n" +
+                "  console.log('JSONResult: ', jsonResult);\n" +
+                "  if (jsonResult.status !== undefined) {\n" +
+                "    var infolabel = document.getElementById(\"infolabel\");\n" +
+                "    infolabel.innerText = jsonResult.status;\n" +
+                "  }" +
+                "}\n" +
                 "function collapsibleStatusHistory() {\n" +
                 "  var history = document.getElementById(\"statushistorycontent\");\n" +
                 "  if (history.style.display === \"block\") {\n" +
@@ -194,6 +227,13 @@ public class DetailServlet extends HttpServlet {
         return result;
     }
 
+    private String getTD(Integer value) {
+        if (value != null) {
+            return getTD(String.valueOf(value));
+        }
+        return getTD(UNBEKANNT);
+    }
+
     private String getTD(int value) {
         return getTD(String.valueOf(value));
     }
@@ -263,7 +303,10 @@ public class DetailServlet extends HttpServlet {
                                 " </thead>\n" +
                                 " <tbody>\n";
                         for (CPTransactionHistoryEntry tentry : cpStatus.getCPTransactionHistoryList()) {
-                            final int total = tentry.getStopValue() - tentry.getStartValue();
+                            String total = UNBEKANNT;
+                            if (tentry.getStopValue() != null) {
+                                total = String.valueOf(tentry.getStopValue().intValue() - tentry.getStartValue());
+                            }
                             result += "   <tr>\n";
                             result += getTD(DateTimeHelper.humanReadable(DateTimeHelper.parse(tentry.getStartTimestamp())));
                             result += getTD(DateTimeHelper.humanReadable(DateTimeHelper.parse(tentry.getStopTimestamp())));

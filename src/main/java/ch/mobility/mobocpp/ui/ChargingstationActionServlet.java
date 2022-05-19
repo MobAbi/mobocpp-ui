@@ -10,16 +10,19 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.time.Instant;
 import java.util.List;
 
 @WebServlet("/action")
 public class ChargingstationActionServlet extends HttpServlet {
     private static String PARAM_ACTIONTYP = "actiontyp";
     private static String PARAM_CS = "cs";
+    private static String PARAM_LIMIT = "limit";
     private static String ACTION_RESET = "reset";
     private static String ACTION_UNLOCK = "unlock";
     private static String ACTION_TRIGGERSTATUS = "triggerstatus";
+    private static String ACTION_CURRENT = "current";
+    private static String ACTION_CHARGE_START = "start";
+    private static String ACTION_CHARGE_STOP = "stop";
 
     private Gson gson = new Gson();
 
@@ -71,12 +74,12 @@ public class ChargingstationActionServlet extends HttpServlet {
         if (actiontyp == null || "".equals(actiontyp) || csId == null || "".equals(csId)) {
             result = new Result("Error: Missing parameter <" + PARAM_ACTIONTYP + "> or <" + PARAM_CS + ">");
         } else {
-            final String dt = DateTimeHelper.humanReadable(Instant.now());
+            final String dt = "";//DateTimeHelper.humanReadable(Instant.now());
             if (ACTION_RESET.equalsIgnoreCase(actiontyp)) {
                 final List<CSChangeChargingCurrentResponse> actionResponse = getAvroProsumer().doReset(csId);
-                final String prefix = "Reset " + dt + ": ";
+                final String prefix = "Neustart" + dt + ": ";
                 if (actionResponse.isEmpty()) {
-                    result = new Result(prefix + ": Keine Daten empfangen");
+                    result = new Result(prefix + "Keine Daten empfangen");
                 } else {
                     final String error = getError(actionResponse.get(0).getResponseInfo());
                     final String reqResult = getRequestResult(actionResponse.get(0).getRequestResult());
@@ -84,9 +87,9 @@ public class ChargingstationActionServlet extends HttpServlet {
                 }
             } else if (ACTION_UNLOCK.equalsIgnoreCase(actiontyp)) {
                 final List<CSUnlockResponse> actionResponse = getAvroProsumer().doUnlock(csId);
-                final String prefix = "Unlock " + dt + ": ";
+                final String prefix = "Kabel freigeben" + dt + ": ";
                 if (actionResponse.isEmpty()) {
-                    result = new Result(prefix + ": Keine Daten empfangen");
+                    result = new Result(prefix + "Keine Daten empfangen");
                 } else {
                     final String error = getError(actionResponse.get(0).getResponseInfo());
                     final String reqResult = getRequestResult(actionResponse.get(0).getRequestResult());
@@ -94,13 +97,49 @@ public class ChargingstationActionServlet extends HttpServlet {
                 }
             } else if (ACTION_TRIGGERSTATUS.equalsIgnoreCase(actiontyp)) {
                 final List<CSTriggerResponse> actionResponse = getAvroProsumer().doTriggerStatus(csId);
-                final String prefix = "Trigger Statusupdate " + dt + ": ";
+                final String prefix = "Statusupdate anfordern" + dt + ": ";
                 if (actionResponse.isEmpty()) {
-                    result = new Result(prefix + ": Keine Daten empfangen");
+                    result = new Result(prefix + "Keine Daten empfangen");
                 } else {
                     final String error = getError(actionResponse.get(0).getResponseInfo());
                     final String reqResult = getRequestResult(actionResponse.get(0).getRequestResult());
                     result = new Result(prefix + (error == null ? reqResult : error));
+                }
+            } else if (ACTION_CHARGE_START.equalsIgnoreCase(actiontyp)) {
+                final List<CSStartChargingResponse> actionResponse = getAvroProsumer().doStart(csId);
+                final String prefix = "Ladevorgang Start" + dt + ": ";
+                if (actionResponse.isEmpty()) {
+                    result = new Result(prefix + "Keine Daten empfangen");
+                } else {
+                    final String error = getError(actionResponse.get(0).getResponseInfo());
+                    final String reqResult = getRequestResult(actionResponse.get(0).getRequestResult());
+                    result = new Result(prefix + (error == null ? reqResult : error));
+                }
+            } else if (ACTION_CHARGE_STOP.equalsIgnoreCase(actiontyp)) {
+                final List<CSStopChargingResponse> actionResponse = getAvroProsumer().doStop(csId);
+                final String prefix = "Ladevorgang Stop" + dt + ": ";
+                if (actionResponse.isEmpty()) {
+                    result = new Result(prefix + "Keine Daten empfangen");
+                } else {
+                    final String error = getError(actionResponse.get(0).getResponseInfo());
+                    final String reqResult = getRequestResult(actionResponse.get(0).getRequestResult());
+                    result = new Result(prefix + (error == null ? reqResult : error));
+                }
+            } else if (ACTION_CURRENT.equalsIgnoreCase(actiontyp)) {
+                final String limit = request.getParameter(PARAM_LIMIT);
+                if (limit == null || "".equals(limit)) {
+                    result = new Result("Error: Missing parameter <" + PARAM_LIMIT + ">");
+                } else {
+                    final int limitInt = Integer.valueOf(limit);
+                    final List<CSChangeChargingCurrentResponse> actionResponse = getAvroProsumer().doProfile(csId, Integer.valueOf(limitInt*10));
+                    final String prefix = "Ladestrom setzen " + limitInt + "A" + dt + ": ";
+                    if (actionResponse.isEmpty()) {
+                        result = new Result(prefix + "Keine Daten empfangen");
+                    } else {
+                        final String error = getError(actionResponse.get(0).getResponseInfo());
+                        final String reqResult = getRequestResult(actionResponse.get(0).getRequestResult());
+                        result = new Result(prefix + (error == null ? reqResult : error));
+                    }
                 }
             } else {
                 result = new Result("Error: Invalid parameter value <" + PARAM_ACTIONTYP + ">: " + actiontyp);

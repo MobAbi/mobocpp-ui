@@ -1,7 +1,10 @@
 package ch.mobility.mobocpp.kafka;
 
 import ch.mobility.mobocpp.ui.ServerMain;
+import ch.mobility.ocpp2mob.CSBackendStatusEnum;
 import ch.mobility.ocpp2mob.CSResponse;
+import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
+import ch.mobility.ocpp2mob.CSStatusForIdResponse;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import org.apache.avro.generic.GenericRecord;
@@ -18,6 +21,7 @@ import java.util.Properties;
 class AvroConsumer<T extends GenericRecord>
 {
     private static final String RESPONSE_INFO = "ResponseInfo";
+    private static final String BACKEND_STATUS = "BackendStatus";
 
     private static AvroConsumer INSTANCE = null;
 
@@ -100,8 +104,12 @@ class AvroConsumer<T extends GenericRecord>
                                 if (record.value().getClass().isAssignableFrom(this.expectedClass)) {
                                     final T value = (T)record.value();
                                     if (hasMessageId(value, this.expectedMessageId)) {
-                                        this.receivedMessages.add(value);
-//                                    log("Match: " + this.expected);
+                                        if (isConnected(value)) {
+                                            this.receivedMessages.add(value);
+//                                            log("Match: " + this.expectedClass);
+                                        } else {
+//                                          log("!!!!!!!!!!!!! Nicht verbunden " + record.value());
+                                        }
                                     } else {
 //                                      log("!!!!!!!!!!!!! MessageId passt nicht: " + this.expectedMessageId + " <> " + record.value());
                                     }
@@ -113,7 +121,7 @@ class AvroConsumer<T extends GenericRecord>
                             }
                         }
                     } catch (Exception e) {
-                        System.err.println("Exception: " + e.getMessage());
+                        System.err.println(e.getClass().getSimpleName() + ": " + e.getMessage());
                     }
                 }
             } finally {
@@ -143,9 +151,32 @@ class AvroConsumer<T extends GenericRecord>
             }
             return false;
         }
+
+        private boolean isConnected(T value) {
+            final CSBackendStatusEnum csBackendStatusEnum;
+            if (value.getClass().isAssignableFrom(CSStatusConnectedResponse.class)) {
+                csBackendStatusEnum = CSBackendStatusEnum.CS_CONNECTED;
+            } else if (value.getClass().isAssignableFrom(CSStatusForIdResponse.class)) {
+                CSStatusForIdResponse csStatusForIdResponse = (CSStatusForIdResponse)value;
+                csBackendStatusEnum = csStatusForIdResponse.getStatus().getBackendStatus();
+            } else {
+                try {
+                    final Field field = value.getClass().getDeclaredField(BACKEND_STATUS);
+                    field.setAccessible(true);
+                    csBackendStatusEnum = (CSBackendStatusEnum)field.get(value);
+                } catch (NoSuchFieldException e ) {
+                    throw new IllegalStateException("Missing field <" + BACKEND_STATUS + "> in Class <" + value.getClass().getName() + ">", e);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalStateException(e.getMessage(), e);
+                }
+            }
+
+            return CSBackendStatusEnum.CS_CONNECTED.equals(csBackendStatusEnum);
+        }
     }
 
     public List<T> receive(Class expectedClass, String expectedMessageId, long wait, int maxMobOCPPBackends) {
+        checkParameter(expectedClass, expectedMessageId, wait, maxMobOCPPBackends);
         consumerThread.receive(expectedClass, expectedMessageId);
         log("Start receive, waiting " + wait + " ms...");
         final long start = System.currentTimeMillis();
@@ -167,6 +198,21 @@ class AvroConsumer<T extends GenericRecord>
         log("receiving done: " + received);
         System.out.println("Empfangen: " + received);
         return received;
+    }
+
+    private void checkParameter(Class expectedClass, String expectedMessageId, long wait, int maxMobOCPPBackends) {
+        if (expectedClass == null) {
+            throw new IllegalArgumentException("Parameter <expectedClass> darf nicht <null> sein");
+        }
+        if (expectedMessageId == null) {
+            throw new IllegalArgumentException("Parameter <expectedMessageId> darf nicht <null> sein");
+        }
+        if (wait <= 0) {
+            throw new IllegalArgumentException("Parameter <wait> muss groesser 0 sein");
+        }
+        if (maxMobOCPPBackends <= 0) {
+            throw new IllegalArgumentException("Parameter <maxMobOCPPBackends> muss groesser 0 sein");
+        }
     }
 
     private static void log(String message) {
