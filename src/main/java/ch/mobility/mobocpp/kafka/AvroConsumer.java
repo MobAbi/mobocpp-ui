@@ -1,10 +1,7 @@
 package ch.mobility.mobocpp.kafka;
 
 import ch.mobility.mobocpp.ui.ServerMain;
-import ch.mobility.ocpp2mob.CSBackendStatusEnum;
-import ch.mobility.ocpp2mob.CSResponse;
-import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
-import ch.mobility.ocpp2mob.CSStatusForIdResponse;
+import ch.mobility.ocpp2mob.*;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import org.apache.avro.generic.GenericRecord;
@@ -136,6 +133,11 @@ class AvroConsumer<T extends GenericRecord>
             }
             if (expectedMessageId == null) {
                 throw new IllegalArgumentException("Parameter <expectedMessageId> must not be null");
+            }
+            // Startup- und Shutdown Notifizierungen nicht verarbeiten
+            if (value.getClass().isAssignableFrom(MobOCPPStartupNotification.class) ||
+                value.getClass().isAssignableFrom(MobOCPPShutdownNotification.class)) {
+                return false;
             }
             try {
                 final Field responseInfoField = value.getClass().getDeclaredField(RESPONSE_INFO);
