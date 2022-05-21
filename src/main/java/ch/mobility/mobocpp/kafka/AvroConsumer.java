@@ -98,20 +98,26 @@ class AvroConsumer<T extends GenericRecord>
                         for (ConsumerRecord<String, GenericRecord> record : records) {
                             log("record.value().getClass(): " + record.value().getClass());
                             if (this.expectedClass != null) {
-                                if (record.value().getClass().isAssignableFrom(this.expectedClass)) {
-                                    final T value = (T)record.value();
-                                    if (hasMessageId(value, this.expectedMessageId)) {
-                                        if (isConnected(value)) {
-                                            this.receivedMessages.add(value);
+                                // Startup- und Shutdown Notifizierungen nicht verarbeiten
+                                if (record.value().getClass().isAssignableFrom(MobOCPPStartupNotification.class) ||
+                                    record.value().getClass().isAssignableFrom(MobOCPPShutdownNotification.class)) {
+                                    // Do nothing....
+                                } else {
+                                    if (record.value().getClass().isAssignableFrom(this.expectedClass)) {
+                                        final T value = (T) record.value();
+                                        if (hasMessageId(value, this.expectedMessageId)) {
+                                            if (isConnected(value)) {
+                                                this.receivedMessages.add(value);
 //                                            log("Match: " + this.expectedClass);
-                                        } else {
+                                            } else {
 //                                          log("!!!!!!!!!!!!! Nicht verbunden " + record.value());
+                                            }
+                                        } else {
+//                                      log("!!!!!!!!!!!!! MessageId passt nicht: " + this.expectedMessageId + " <> " + record.value());
                                         }
                                     } else {
-//                                      log("!!!!!!!!!!!!! MessageId passt nicht: " + this.expectedMessageId + " <> " + record.value());
-                                    }
-                                } else {
 //                                    log("!!!!!!!!!!!!! Kein Match: " + this.expected + " <> " + record.value());
+                                    }
                                 }
                             } else {
 //                                log("Kein expected: " + record.value());
@@ -133,11 +139,6 @@ class AvroConsumer<T extends GenericRecord>
             }
             if (expectedMessageId == null) {
                 throw new IllegalArgumentException("Parameter <expectedMessageId> must not be null");
-            }
-            // Startup- und Shutdown Notifizierungen nicht verarbeiten
-            if (value.getClass().isAssignableFrom(MobOCPPStartupNotification.class) ||
-                value.getClass().isAssignableFrom(MobOCPPShutdownNotification.class)) {
-                return false;
             }
             try {
                 final Field responseInfoField = value.getClass().getDeclaredField(RESPONSE_INFO);
