@@ -15,7 +15,7 @@ public class AvroProsumer implements Runnable {
     }
 
     private static final long UPDATE_INTERVAL = 60L * 1000L;
-    private static final long MAX_WAIT_FOR_RESPONSE_MS = 3000L;
+    private static final long MAX_WAIT_FOR_RESPONSE_MS = 5000L;
     private static final int MAX_NUMBER_OF_OCPP_BACKENDS = 5;
 
     private static AvroProsumer INSTANCE = null;
