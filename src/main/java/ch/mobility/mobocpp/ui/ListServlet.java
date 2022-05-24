@@ -170,7 +170,9 @@ public class ListServlet extends HttpServlet {
                     } else if (matchConnectorStatus(ConnectorStatusEnum.Available, statusConnected.getCPConnectorStatus())) {
                         result = BLUE;
                     } else if (ConnectorStatusEnum.Occupied.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
-                        if (matchChargingState(ChargingStateEnum.Charging, statusConnected.getCPChargingState())) {
+                        if (matchChargingState(ChargingStateEnum.Idle, statusConnected.getCPChargingState())) {
+                            result = BLUE;
+                        } else if (matchChargingState(ChargingStateEnum.Charging, statusConnected.getCPChargingState())) {
                             result = GREEN_DARK;
                         } else {
                             result = GREEN_LIGHT;
