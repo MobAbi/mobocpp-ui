@@ -1,18 +1,24 @@
 package ch.mobility.mobocpp.ui;
 
+import ch.mobility.mobocpp.kafka.AvroProsumer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
+import sun.misc.Signal;
 
 import java.net.URL;
 
 public class ServerMain {
 
-    public static String HOST = "192.168.1.12";
-//    public static String HOST = "192.168.1.48";
     public static String PORT_BOOTSTRAP = "9092";
     public static String PORT_SCHEMA_REGISTRY = "8081";
 
     public static void main(String[] args) throws Exception {
+
+        String hostIP = "192.168.1.48";
+        if (args.length == 1 && (!"".equals(args[0]))) {
+            hostIP = args[0];
+        }
+        AvroProsumer.init(hostIP);
 
         Server server = new Server(8088);
         WebAppContext webAppContext = new WebAppContext();
@@ -31,10 +37,51 @@ public class ServerMain {
 
         // Start the server! 🚀
         server.start();
-        System.out.println("Server started!");
+        System.out.println("Server started, accessing Kafka on host " + hostIP);
+
+        registerShutdownFunctions(server);
 
         // Keep the main thread alive while the server is running.
         server.join();
+        log("Bye");
     }
 
+    private static void registerShutdownFunctions(Server server) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                stop(server, "ShutdownHook");
+            } catch (Exception e) {
+                logError("ShutdownHook: " + e.getMessage());
+            }
+        }));
+//        // https://stackoverflow.com/questions/1611931/catching-ctrlc-in-java
+        handleSignal(server, "INT");
+        handleSignal(server, "TERM");
+    }
+
+    private static void handleSignal(Server server, String signalName) {
+        Signal.handle(new Signal(signalName),  // SIGTERM
+            signal -> {
+                try {
+                    stop(server, "SIG" + signalName);
+                } catch (Exception e) {
+                    logError("SIG" + signalName + ": " + e.getMessage());
+                }
+            });
+    }
+
+    private static void stop(Server server, String msg) throws Exception {
+        log("Stopping Server: " + msg);
+        AvroProsumer.get().close();
+        server.stop();
+        server.destroy();
+    }
+
+    private static void log(String msg) {
+        System.out.println(msg);
+    }
+
+    private static void logError(String msg) {
+        System.err.println(msg);
+    }
 }

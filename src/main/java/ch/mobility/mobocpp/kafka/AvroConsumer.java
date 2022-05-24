@@ -15,8 +15,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-class AvroConsumer<T extends GenericRecord>
-{
+class AvroConsumer<T extends GenericRecord> {
+
+    private static String hostIP;
+    public static void init(String hostIPvalue) {
+        hostIP = hostIPvalue;
+    }
+
     private static final String RESPONSE_INFO = "ResponseInfo";
     private static final String BACKEND_STATUS = "BackendStatus";
 
@@ -30,7 +35,7 @@ class AvroConsumer<T extends GenericRecord>
     }
 
     private static Duration duration = Duration.ofMillis(100);
-    final ConsumerThread consumerThread;
+    private final ConsumerThread consumerThread;
 
     private AvroConsumer() {
         consumerThread = new ConsumerThread();
@@ -50,11 +55,14 @@ class AvroConsumer<T extends GenericRecord>
         private String expectedMessageId = null;
         private List<T> receivedMessages = null;
 
+        ConsumerThread() {
+        }
+
         private Consumer<String, GenericRecord> createConsumer() {
 
             Properties props = new Properties();
 
-            props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ServerMain.HOST + ":" + ServerMain.PORT_BOOTSTRAP);
+            props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, hostIP + ":" + ServerMain.PORT_BOOTSTRAP);
             props.put(ConsumerConfig.GROUP_ID_CONFIG, "mobility-ui");
             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
             props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -62,13 +70,13 @@ class AvroConsumer<T extends GenericRecord>
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
             props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
 
-            props.put("schema.registry.url", "http://" + ServerMain.HOST + ":" + ServerMain.PORT_SCHEMA_REGISTRY);
+            props.put("schema.registry.url", "http://" + hostIP + ":" + ServerMain.PORT_SCHEMA_REGISTRY);
             props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true);  //ensures records are properly converted
 
             Consumer<String, GenericRecord> consumer = new KafkaConsumer<String, GenericRecord>(props);
             consumer.subscribe(Arrays.asList(topicName));
 
-            log("AvroConsumer subscribed to topic " + topicName);
+            log("AvroConsumer subscribed to topic " + topicName + " on host " + hostIP);
             return consumer;
         }
 

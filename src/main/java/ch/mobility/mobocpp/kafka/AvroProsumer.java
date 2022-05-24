@@ -7,6 +7,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class AvroProsumer implements Runnable {
+
+    public static void init(String hostIPvalue) {
+        AvroProducer.init(hostIPvalue);
+        AvroConsumer.init(hostIPvalue);
+        AvroProsumer.get();// Start "Update Number of Backends-Thread"
+    }
+
+    private static final long UPDATE_INTERVAL = 60L * 1000L;
     private static final long MAX_WAIT_FOR_RESPONSE_MS = 3000L;
     private static final int MAX_NUMBER_OF_OCPP_BACKENDS = 5;
 
@@ -114,18 +122,36 @@ public class AvroProsumer implements Runnable {
 
     @Override
     public void run() {
+        long waitStart = System.currentTimeMillis() - UPDATE_INTERVAL;
+
         while (run) {
-            final List<CSStatusConnectedResponse> statusConnected =
-                    getStatusConnected(MAX_WAIT_FOR_RESPONSE_MS, MAX_NUMBER_OF_OCPP_BACKENDS);
-            if (!statusConnected.isEmpty()) {
-                if (this.maxMobOCPPBackends != statusConnected.size()) {
-                    System.out.println("Anzahl verbundener OCPP-Backends geaendert: von " + this.maxMobOCPPBackends + " zu " + statusConnected.size());
-                    this.maxMobOCPPBackends = statusConnected.size();
-                } else {
-                    System.out.println("Anzahl verbundener OCPP-Backends unveraendert " + this.maxMobOCPPBackends);
+            if (isWaitUpdateIntervalUp(waitStart)) {
+                waitStart = System.currentTimeMillis();
+                final List<CSStatusConnectedResponse> statusConnected =
+                        getStatusConnected(MAX_WAIT_FOR_RESPONSE_MS, MAX_NUMBER_OF_OCPP_BACKENDS);
+                if (!statusConnected.isEmpty()) {
+                    if (this.maxMobOCPPBackends != statusConnected.size()) {
+                        log("Anzahl verbundener OCPP-Backends geaendert: von " + this.maxMobOCPPBackends + " zu " + statusConnected.size());
+                        this.maxMobOCPPBackends = statusConnected.size();
+                    } else {
+                        log("Anzahl verbundener OCPP-Backends unveraendert " + this.maxMobOCPPBackends);
+                    }
                 }
             }
-            try { Thread.sleep(60 * 1000); } catch (InterruptedException e) {}
+            try { Thread.sleep(100); } catch (InterruptedException e) {}
         }
+//        log(this.getClass().getSimpleName() + " OCPP-Backend Counter Thread DONE.");
+    }
+
+    private boolean isWaitUpdateIntervalUp(long waitStart) {
+        final long waited = System.currentTimeMillis() - waitStart;
+        if (waited > UPDATE_INTERVAL) {
+            return true;
+        }
+        return false;
+    }
+
+    private static void log(String message) {
+        System.out.println(message);
     }
 }

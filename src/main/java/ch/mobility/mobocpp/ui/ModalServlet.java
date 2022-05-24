@@ -57,6 +57,7 @@ public class ModalServlet extends HttpServlet {
                 "<title>Modaltest</title>\n" +
                 "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"modalstyle.css\">\n" +
+                "<link rel=\"icon\" href=\"static/images/favicon.ico\" type=\"image/x-icon\" />" +
                 "</head>";
     }
 

@@ -120,6 +120,7 @@ public class DetailServlet extends HttpServlet {
         return "<head>\n" +
                 "    <title>MobOCPP UI</title>\n" +
                 "    <link rel=\"stylesheet\" type=\"text/css\" href=\"detailstyle.css\">\n" +
+                "    <link rel=\"icon\" href=\"static/images/favicon.ico\" type=\"image/x-icon\" />" +
                 "</head>";
     }
 

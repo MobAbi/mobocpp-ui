@@ -16,6 +16,11 @@ import java.util.Properties;
 
 class AvroProducer {
 
+    private static String hostIP;
+    public static void init(String hostIPvalue) {
+        hostIP = hostIPvalue;
+    }
+
     private static AvroProducer INSTANCE = null;
 
     public static AvroProducer get() {
@@ -29,17 +34,16 @@ class AvroProducer {
     private final KafkaProducer producer;
 
     private AvroProducer() {
-        System.out.println("AvroProducer Topic: " + topicName);
-
+        System.out.println("AvroProducer Topic: " + topicName + " on host " + hostIP);
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, ServerMain.HOST + ":" + ServerMain.PORT_BOOTSTRAP);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, hostIP + ":" + ServerMain.PORT_BOOTSTRAP);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
 
         // https://www.confluent.io/blog/put-several-event-types-kafka-topic/
         props.put("value.subject.name.strategy", "io.confluent.kafka.serializers.subject.RecordNameStrategy");
 
-        props.put("schema.registry.url", "http://" + ServerMain.HOST + ":" + ServerMain.PORT_SCHEMA_REGISTRY);
+        props.put("schema.registry.url", "http://" + hostIP + ":" + ServerMain.PORT_SCHEMA_REGISTRY);
 
         producer = new KafkaProducer(props);
     }

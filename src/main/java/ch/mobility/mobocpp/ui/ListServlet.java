@@ -1,5 +1,8 @@
 package ch.mobility.mobocpp.ui;
 
+import ch.mobility.mobocpp.CSStammdatanLoadResult;
+import ch.mobility.mobocpp.CSStammdatanLoader;
+import ch.mobility.mobocpp.CSStammdaten;
 import ch.mobility.mobocpp.kafka.AvroProsumer;
 import ch.mobility.ocpp2mob.CSStatusConnected;
 import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
@@ -12,7 +15,11 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @WebServlet("/list")
 public class ListServlet extends HttpServlet {
@@ -29,26 +36,23 @@ public class ListServlet extends HttpServlet {
     final static String GREEN_DARK = "#06b251";   // O2
     final static String GREEN_LIGHT = "#78f1ad";  // O3
 
-    private static String KeyLadestationBekanntVerbindungBestehtA = "JCME321202921192";
-    private static String KeyLadestationBekanntVerbindungBestehtB = "JC310001";
-    private static String KeyLadestationBekanntVerbindungBestehtC = "1311222009";
-
     // Simuliert die Stammdaten zu den Ladestationen
     private static List<CSStammdaten> stammdatenMap = new ArrayList<>();
     private static Map<String, Instant> lastContact = new HashMap<>();
     static {
         if (doAddFake) {
             //stammdatenMap.add(CSStammdaten.of(KeyLadestationOhneStammdaten, "47.5475926,7.5874733", "Basel Hauptbahnhof"));
-            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "47.4458578,9.1400634", "Raiffeisenbank", "9500", "Wil"));
-            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN, "47.1442198,8.4349035", "Hauptsitz", "6343", "Rotkreuz"));
-            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler, "46.5160055,6.6277126", "Bahnhof", "1003", "Lausanne"));
-            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen, "46.1726474,8.7994749", "SBB Locarno", "6600", "Locarno"));
-            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden, "46.8482,9.5311401", "Jochstrasse", "7000", "Chur"));
-            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden, "47.3776673,8.5323237", "Europaallee", "8004", "Zurich"));
+            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "Raiffeisenbank", "9500", "Wil", "47.4458578","9.1400634"));
+            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN,  "Hauptsitz", "6343", "Rotkreuz", "47.1442198","8.4349035"));
+            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler,  "Bahnhof", "1003", "Lausanne", "46.5160055","6.6277126"));
+            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen,  "SBB Locarno", "6600", "Locarno", "46.1726474","8.7994749"));
+            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden,  "Jochstrasse", "7000", "Chur", "46.8482","9.5311401"));
+            stammdatenMap.add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden,  "Europaallee", "8004", "Zurich", "47.3776673","8.5323237"));
         }
-        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtA, "46.9585416,8.3640993", "Bahnhof", "6370", "Stans"));
-        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtB, "46.8974001,8.2461243", "Raiffeisenbank", "6060", "Sarnen"));
-        stammdatenMap.add(CSStammdaten.of(KeyLadestationBekanntVerbindungBestehtC, "46.2937841,7.8794028", "Migros", "3930", "Visp"));
+        final CSStammdatanLoadResult loaded = new CSStammdatanLoader().load();
+        final String ids = loaded.getCSStammdaten().stream().map(e -> e.getId()).collect(Collectors.joining(","));
+        System.out.println(loaded.getCSStammdaten().size()  + " Ladestationen aus der Stammdatendatei gelesen: " + ids);
+        stammdatenMap.addAll(loaded.getCSStammdaten());
     }
 
     private AvroProsumer getAvroProsumer() {
@@ -109,7 +113,7 @@ public class ListServlet extends HttpServlet {
             for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
                 final CSStammdaten stammdaten = getStammdaten(csStatusConnected.getId());
                 if (stammdaten == null) {
-                    stammdatenMap.add(CSStammdaten.of(csStatusConnected.getId(), UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT));
+                    stammdatenMap.add(CSStammdaten.of(csStatusConnected.getId(), UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT));
 //                    keineStammdaten.add(csStatusConnected);
                 }
             }
@@ -192,6 +196,7 @@ public class ListServlet extends HttpServlet {
         return "<head>\n" +
                 "    <title>MobOCPP UI</title>\n" +
                 "    <link rel=\"stylesheet\" type=\"text/css\" href=\"liststyle.css\">\n" +
+                "    <link rel=\"icon\" href=\"static/images/favicon.ico\" type=\"image/x-icon\" />" +
                 "</head>";
     }
 

@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 @WebServlet("/cs")
 public class ChargestationServlet extends HttpServlet {
@@ -135,6 +134,7 @@ public class ChargestationServlet extends HttpServlet {
 //                "            crossorigin=\"\">\n" +
 //                "    </script>\n" +
                 "    <link rel=\"stylesheet\" href=\"mapstyle.css\">\n" +
+                "    <link rel=\"icon\" href=\"static/images/favicon.ico\" type=\"image/x-icon\" />" +
                 "</head>";
     }
 }
