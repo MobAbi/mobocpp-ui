@@ -230,13 +230,10 @@ public class ListServlet extends HttpServlet {
                 "    }\n" +
                 "  }\n" +
                 "}\n" +
-                "function reload() {\n" +
-                "  window.location.reload();\n" +
-                "}\n" +
                 "function clearFilter() {\n" +
                 "  input = document.getElementById(\"filterInput\");\n" +
-                "  input.value = '';" +
-                "  filterFunction();" +
+                "  input.value = '';\n" +
+                "  filterFunction();\n" +
                 "}\n" +
                 "function sortTable(n) {\n" +
                 "  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;\n" +
@@ -291,6 +288,12 @@ public class ListServlet extends HttpServlet {
                 "      }\n" +
                 "    }\n" +
                 "  }\n" +
+                "}" +
+                "function reload() {\n" +
+                "  window.location.reload();\n" +
+                "}\n" +
+                "window.onload = function() {" +
+                "  filterFunction();" +
                 "}";
     }
 
