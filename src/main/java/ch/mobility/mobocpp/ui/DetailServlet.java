@@ -76,10 +76,11 @@ public class DetailServlet extends HttpServlet {
         response.getWriter().println("   <button class=\"button\" onClick=\"doAction('reset','" + id + "')\">Neustart</button>");
         response.getWriter().println("   <button class=\"button\" onClick=\"doAction('unlock','" + id + "')\">Kabel freigeben</button>");
         response.getWriter().println("   <button class=\"button\" onClick=\"doAction('triggerstatus','" + id + "')\">Statusupdate anfordern</button>");
+        response.getWriter().println("   <button class=\"button\" onClick=\"doAction('triggermeter','" + id + "')\">Messwerte anfordern</button>");
         response.getWriter().println("   <div class=\"dropdown\">");
         response.getWriter().println("     <button class=\"dropdownbutton\">Ladestrom setzen</button>");
         response.getWriter().println("     <div class=\"dropdown-content\">");
-        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('0','" + id + "')\">Suspend (0A)</label>");
+        response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('0','" + id + "')\">Anhalten (0A)</label>");
         response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('6','" + id + "')\">6 Ampere</label>");
         response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('8','" + id + "')\">8 Ampere</label>");
         response.getWriter().println("       <label class=\"dropdown-label\" onClick=\"doCurrent('10','" + id + "')\">10 Ampere</label>");

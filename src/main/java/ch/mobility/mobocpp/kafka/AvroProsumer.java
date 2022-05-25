@@ -96,6 +96,14 @@ public class AvroProsumer implements Runnable {
         }
     }
 
+    public List<CSTriggerResponse> doTriggerMeterValues(String csId) {
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestTrigger(messageId, csId, 1, TriggerKeywordsV1XEnum.METER.name()); // TODO Parameter
+            return getAvroConsumer().receive(CSTriggerResponse.class, messageId, wait, 1);
+        }
+    }
+
     public List<CSChangeChargingCurrentResponse> doProfile(String csId, Integer maxCurrent) {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();

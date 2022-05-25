@@ -20,6 +20,7 @@ public class ChargingstationActionServlet extends HttpServlet {
     private static String ACTION_RESET = "reset";
     private static String ACTION_UNLOCK = "unlock";
     private static String ACTION_TRIGGERSTATUS = "triggerstatus";
+    private static String ACTION_TRIGGERMETER = "triggermeter";
     private static String ACTION_CURRENT = "current";
     private static String ACTION_CHARGE_START = "start";
     private static String ACTION_CHARGE_STOP = "stop";
@@ -98,6 +99,16 @@ public class ChargingstationActionServlet extends HttpServlet {
             } else if (ACTION_TRIGGERSTATUS.equalsIgnoreCase(actiontyp)) {
                 final List<CSTriggerResponse> actionResponse = getAvroProsumer().doTriggerStatus(csId);
                 final String prefix = "Statusupdate anfordern" + dt + ": ";
+                if (actionResponse.isEmpty()) {
+                    result = new Result(prefix + "Keine Daten empfangen");
+                } else {
+                    final String error = getError(actionResponse.get(0).getResponseInfo());
+                    final String reqResult = getRequestResult(actionResponse.get(0).getRequestResult());
+                    result = new Result(prefix + (error == null ? reqResult : error));
+                }
+            } else if (ACTION_TRIGGERMETER.equalsIgnoreCase(actiontyp)) {
+                final List<CSTriggerResponse> actionResponse = getAvroProsumer().doTriggerMeterValues(csId);
+                final String prefix = "Messwerte anfordern" + dt + ": ";
                 if (actionResponse.isEmpty()) {
                     result = new Result(prefix + "Keine Daten empfangen");
                 } else {
