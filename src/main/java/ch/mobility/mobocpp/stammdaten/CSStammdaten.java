@@ -1,4 +1,4 @@
-package ch.mobility.mobocpp;
+package ch.mobility.mobocpp.stammdaten;
 
 public class CSStammdaten {
     private final String id;

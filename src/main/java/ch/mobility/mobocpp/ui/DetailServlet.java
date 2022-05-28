@@ -1,6 +1,8 @@
 package ch.mobility.mobocpp.ui;
 
 import ch.mobility.mobocpp.kafka.AvroProsumer;
+import ch.mobility.mobocpp.stammdaten.CSStammdaten;
+import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
 import ch.mobility.ocpp2mob.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -187,19 +189,34 @@ public class DetailServlet extends HttpServlet {
                 result = addLine("Error", csStatusForIdResponse.getResponseInfo().getError());
             } else {
                 final CSStatusDetail status = csStatusForIdResponse.getStatus();
+                final CSStammdaten csStammdaten = StammdatenAccessor.get().forId(id);
                 result = addLine("<b>Kennung</b>", status.getId());
-                result+= addLine("Backendstatus", status.getBackendStatus().toString());
-                result+= addLine("Vendor", status.getVendor());
-                result+= addLine("Model", status.getModel());
+                result+= addLine("Standort", getStammdatenOneRow(csStammdaten));
+                result+= addLine("Hersteller - Modell", status.getVendor() + " - " + status.getModel());
                 result+= addLine("FW-Version", status.getFirmwareversion());
-                result+= addLine("OCPP-Version", status.getOCPPVersion());
-                result+= addLine("First contact", DateTimeHelper.humanReadable(DateTimeHelper.parse(status.getFirstContact())));
-                result+= addLine("Last contact", DateTimeHelper.humanReadable(DateTimeHelper.parse(status.getLastContact())));
-                result+= addLine("CS IP Address", status.getIPAddress());
-                result+= addLine("Backend IP Adress", csStatusForIdResponse.getResponseInfo().getOCPPBackendId());
+                result+= addLine("Erster Kontakt", DateTimeHelper.humanReadable(DateTimeHelper.parse(status.getFirstContact())));
+                result+= addLine("Letzter Kontakt", DateTimeHelper.humanReadable(DateTimeHelper.parse(status.getLastContact())));
+                result+= addLine("Backend-Status", getBackendStatusHumandReadable(status.getBackendStatus()));
+                result+= addLine("IP Address", status.getIPAddress());
             }
         }
         return result;
+    }
+
+    private String getBackendStatusHumandReadable(CSBackendStatusEnum status) {
+        switch (status) {
+            case CS_CONNECTED: return "Verbunden";
+            case CS_UNKNOWN: return "Im Backend Unbekannt";
+            case CS_NOT_CONNECTED: return "Nicht verbunden";
+            default: throw new IllegalStateException("Unbekannter CSBackendStatusEnum Wert: " + status);
+        }
+    }
+
+    private String getStammdatenOneRow(CSStammdaten csStammdaten) {
+        if (csStammdaten != null) {
+            return csStammdaten.getPlz() + " " + csStammdaten.getOrt() + " " + csStammdaten.getName();
+        }
+        return UNBEKANNT;
     }
 
     private String getMainRight(CSStatusForIdResponse csStatusForIdResponse) {
@@ -212,9 +229,10 @@ public class DetailServlet extends HttpServlet {
                     result += addLine("Connector Status", cpStatus.getConnectorStatus().name());
                     result += addLine("Charging State", (cpStatus.getChargingState() == null ? "" : cpStatus.getChargingState().name()));
                     result += addLine("Current charged energy", cpStatus.getCurrentChargedEnergy());
-                    result += addLine("Current charging Ampere L1", cpStatus.getCurrentChargingAmpereL1());
-                    result += addLine("Current charging Ampere L2", cpStatus.getCurrentChargingAmpereL2());
-                    result += addLine("Current charging Ampere L3", cpStatus.getCurrentChargingAmpereL3());
+                    result += addLine("Current charging Ampere (L1 / L2 / L3)",
+                            cpStatus.getCurrentChargingAmpereL1() +
+                            " / " + cpStatus.getCurrentChargingAmpereL2() +
+                            " / " + cpStatus.getCurrentChargingAmpereL3());
                     if (NO_ERROR.equals(cpStatus.getErrorCode())) {
                         if (!NO_INFO.equals(cpStatus.getErrorInfo())) {
                             result += addLine("Information", cpStatus.getErrorInfo());
@@ -296,11 +314,11 @@ public class DetailServlet extends HttpServlet {
                         result += "<table id=\"transhistorytable\">\n" +
                                 " <thead>\n" +
                                 "   <tr>\n" +
-                                "     <th>Start</th>\n" +
-                                "     <th>Stop</th>\n" +
-                                "     <th>Startwert</th>\n" +
-                                "     <th>Stopwert</th>\n" +
-                                "     <th>Total</th>\n" +
+                                "     <th>Start-Zeitpunkt</th>\n" +
+                                "     <th>Stop-Zeitpunkt</th>\n" +
+                                "     <th>Startwert (Wh)</th>\n" +
+                                "     <th>Stopwert (Wh)</th>\n" +
+                                "     <th>Total (Wh)</th>\n" +
                                 "  </tr>\n" +
                                 " </thead>\n" +
                                 " <tbody>\n";

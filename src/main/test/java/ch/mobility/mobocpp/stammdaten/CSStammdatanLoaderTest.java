@@ -1,4 +1,4 @@
-package ch.mobility.mobocpp;
+package ch.mobility.mobocpp.stammdaten;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,15 +14,15 @@ public class CSStammdatanLoaderTest {
     @Test
     public void testLeerMitHeader() {
         CSStammdatanLoader testee = createTestee(getList(true));
-        CSStammdatanLoadResult load = testee.load();
-        Assert.assertTrue(load.getCSStammdaten().size() == 0);
+        StammdatenAccessor accessor = testee.load();
+        Assert.assertTrue(accessor.getStammdatenList().size() == 0);
     }
 
     @Test
     public void testLeerOhneHeader() {
         CSStammdatanLoader testee = createTestee(getList(false));
-        CSStammdatanLoadResult load = testee.load();
-        Assert.assertTrue(load.getCSStammdaten().size() == 0);
+        StammdatenAccessor accessor = testee.load();
+        Assert.assertTrue(accessor.getStammdatenList().size() == 0);
     }
 
     @Test
@@ -36,20 +36,20 @@ public class CSStammdatanLoaderTest {
         CSStammdatanLoader testee = createTestee(list);
 
         { // Ohne Header
-            CSStammdatanLoadResult load = testee.load();
-            Assert.assertTrue(load.getCSStammdaten().size() == 2);
-            Assert.assertTrue(load.getUngueltigeZeilen().size() == 2);
-            Assert.assertEquals("ID1", load.getCSStammdaten().get(0).getId());
-            Assert.assertEquals("name2", load.getCSStammdaten().get(1).getName());
+            StammdatenAccessor accessor = testee.load();
+            Assert.assertTrue(accessor.getStammdatenList().size() == 2);
+            Assert.assertTrue(accessor.getUngueltigeZeilen().size() == 2);
+            Assert.assertEquals("ID1", accessor.getStammdatenList().get(0).getId());
+            Assert.assertEquals("name2", accessor.getStammdatenList().get(1).getName());
         }
 
         { // Mit Header
             addHeader(list);
-            CSStammdatanLoadResult load = testee.load();
-            Assert.assertTrue(load.getCSStammdaten().size() == 2);
-            Assert.assertTrue(load.getUngueltigeZeilen().size() == 2);
-            Assert.assertEquals("lon1", load.getCSStammdaten().get(0).getLongitude());
-            Assert.assertEquals("lat2", load.getCSStammdaten().get(1).getLatitude());
+            StammdatenAccessor accessor = testee.load();
+            Assert.assertTrue(accessor.getStammdatenList().size() == 2);
+            Assert.assertTrue(accessor.getUngueltigeZeilen().size() == 2);
+            Assert.assertEquals("lon1", accessor.getStammdatenList().get(0).getLongitude());
+            Assert.assertEquals("lat2", accessor.getStammdatenList().get(1).getLatitude());
         }
     }
 
@@ -64,16 +64,16 @@ public class CSStammdatanLoaderTest {
         CSStammdatanLoader testee = createTestee(list);
 
         { // Ohne Header
-            CSStammdatanLoadResult load = testee.load();
-            Assert.assertTrue(load.getCSStammdaten().size() == 2);
-            Assert.assertTrue(load.getUngueltigeZeilen().size() == 2);
+            StammdatenAccessor accessor = testee.load();
+            Assert.assertTrue(accessor.getStammdatenList().size() == 2);
+            Assert.assertTrue(accessor.getUngueltigeZeilen().size() == 2);
         }
 
         { // Mit Header
             addHeader(list);
-            CSStammdatanLoadResult load = testee.load();
-            Assert.assertTrue(load.getCSStammdaten().size() == 2);
-            Assert.assertTrue(load.getUngueltigeZeilen().size() == 2);
+            StammdatenAccessor accessor = testee.load();
+            Assert.assertTrue(accessor.getStammdatenList().size() == 2);
+            Assert.assertTrue(accessor.getUngueltigeZeilen().size() == 2);
         }
     }
 
@@ -90,12 +90,12 @@ public class CSStammdatanLoaderTest {
         list.add(getLine(qm, "ID3", "name3", "plz3", "ort3", "lon3", "lat3"));
         CSStammdatanLoader testee = createTestee(list);
 
-        CSStammdatanLoadResult load = testee.load();
-        Assert.assertTrue(load.getCSStammdaten().size() == 4);
-        Assert.assertTrue(load.getUngueltigeZeilen().size() == 0);
-        Assert.assertTrue(load.getIDsWithDuplicates().size() == 2);
-        Assert.assertTrue(load.getIDsWithDuplicates().contains("DUPLICATE1"));
-        Assert.assertTrue(load.getIDsWithDuplicates().contains("DUPLICATE2"));
+        StammdatenAccessor accessor = testee.load();
+        Assert.assertTrue(accessor.getStammdatenList().size() == 4);
+        Assert.assertTrue(accessor.getUngueltigeZeilen().size() == 0);
+        Assert.assertTrue(accessor.getIdsWithDuplicates().size() == 2);
+        Assert.assertTrue(accessor.getIdsWithDuplicates().contains("DUPLICATE1"));
+        Assert.assertTrue(accessor.getIdsWithDuplicates().contains("DUPLICATE2"));
     }
 
     @Test
@@ -106,9 +106,9 @@ public class CSStammdatanLoaderTest {
                 throw new IOException("Test");
             }
         };
-        CSStammdatanLoadResult load = testee.load();
-        Assert.assertTrue(load.getCSStammdaten().size() == 0);
-        Assert.assertTrue(load.getUngueltigeZeilen().size() == 0);
+        StammdatenAccessor accessor = testee.load();
+        Assert.assertTrue(accessor.getStammdatenList().size() == 0);
+        Assert.assertTrue(accessor.getUngueltigeZeilen().size() == 0);
     }
 
     private CSStammdatanLoader createTestee(List<String> list) {

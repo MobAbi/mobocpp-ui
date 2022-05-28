@@ -1,4 +1,4 @@
-package ch.mobility.mobocpp;
+package ch.mobility.mobocpp.stammdaten;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +17,7 @@ public class CSStammdatanLoader {
     protected static String HEADER_LINE = "ID;NAME;PLZ;ORT;LONGITUDE;LATITUDE";
     private static int NUMBER_OF_COLUMNS = HEADER_LINE.split(DELIMITER).length;
 
-    public CSStammdatanLoadResult load()  {
+    StammdatenAccessor load()  {
 
         try {
             final Statistics statistics = new Statistics();
@@ -41,43 +41,13 @@ public class CSStammdatanLoader {
 //        System.out.println("Eingelesen: " + statistics.getTotal() + ", OK: " + statistics.getGood() + ", Fehlerhaft: " + statistics.getBad());
 
             lines.close();
-            return new CSStammdatanLoadResult() {
-                @Override
-                public List<Integer> getUngueltigeZeilen() {
-                    return statistics.getBadLines();
-                }
-
-                @Override
-                public List<CSStammdaten> getCSStammdaten() {
-                    return result;
-                }
-
-                @Override
-                public List<String> getIDsWithDuplicates() {
-                    return duplicates;
-                }
-            };
+            return new StammdatenAccessor(result, statistics.getBadLines(), duplicates);
         } catch (Exception e) {
             Throwable t = getLastThrowable(e);
             logError("[" + this.getClass().getSimpleName() + "] Fehler beim Laden der '" + FILENAME + "': " +
                     t.getClass().getSimpleName() + (t.getMessage() == null ? "": " => " + t.getMessage()));
 //            e.printStackTrace(System.err);
-            return new CSStammdatanLoadResult() {
-                @Override
-                public List<Integer> getUngueltigeZeilen() {
-                    return new ArrayList<>();
-                }
-
-                @Override
-                public List<CSStammdaten> getCSStammdaten() {
-                    return new ArrayList<>();
-                }
-
-                @Override
-                public List<String> getIDsWithDuplicates() {
-                    return new ArrayList<>();
-                }
-            };
+            return new StammdatenAccessor(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         }
     }
 
