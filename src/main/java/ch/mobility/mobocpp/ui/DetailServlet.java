@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 
@@ -318,21 +320,24 @@ public class DetailServlet extends HttpServlet {
                                 "     <th>Stop-Zeitpunkt</th>\n" +
                                 "     <th>Startwert (Wh)</th>\n" +
                                 "     <th>Stopwert (Wh)</th>\n" +
-                                "     <th>Total (Wh)</th>\n" +
+                                "     <th>Total (KWh)</th>\n" +
                                 "  </tr>\n" +
                                 " </thead>\n" +
                                 " <tbody>\n";
                         for (CPTransactionHistoryEntry tentry : cpStatus.getCPTransactionHistoryList()) {
-                            String total = UNBEKANNT;
+                            String totalString = UNBEKANNT;
                             if (tentry.getStopValue() != null) {
-                                total = String.valueOf(tentry.getStopValue().intValue() - tentry.getStartValue());
+                                final BigDecimal startValue = BigDecimal.valueOf(tentry.getStartValue());
+                                final BigDecimal stopValue = BigDecimal.valueOf(tentry.getStopValue());
+                                final BigDecimal totalValue = stopValue.subtract(startValue).divide(BigDecimal.valueOf(1000L), 1, RoundingMode.HALF_UP);
+                                totalString = totalValue.toString();
                             }
                             result += "   <tr>\n";
                             result += getTD(DateTimeHelper.humanReadable(DateTimeHelper.parse(tentry.getStartTimestamp())));
                             result += getTD(DateTimeHelper.humanReadable(DateTimeHelper.parse(tentry.getStopTimestamp())));
                             result += getTD(tentry.getStartValue());
                             result += getTD(tentry.getStopValue());
-                            result += getTD(total);
+                            result += getTD(totalString);
                             result += "   </tr>\n";
                         }
                         result += " </tbody>\n" +
