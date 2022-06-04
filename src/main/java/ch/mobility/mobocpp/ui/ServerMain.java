@@ -9,9 +9,6 @@ import java.net.URL;
 
 public class ServerMain {
 
-    public static String PORT_BOOTSTRAP = "9092";
-    public static String PORT_SCHEMA_REGISTRY = "8081";
-
     public static void main(String[] args) throws Exception {
 
         String hostIP = "192.168.1.48";
@@ -43,7 +40,7 @@ public class ServerMain {
 
         // Keep the main thread alive while the server is running.
         server.join();
-        log("Bye");
+        logInfo("Bye");
     }
 
     private static void registerShutdownFunctions(Server server) {
@@ -71,13 +68,13 @@ public class ServerMain {
     }
 
     private static void stop(Server server, String msg) throws Exception {
-        log("Stopping Server: " + msg);
+        logInfo("Stopping Server: " + msg);
         AvroProsumer.get().close();
         server.stop();
         server.destroy();
     }
 
-    private static void log(String msg) {
+    private static void logInfo(String msg) {
         System.out.println(msg);
     }
 

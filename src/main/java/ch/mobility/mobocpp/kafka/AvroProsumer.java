@@ -1,5 +1,7 @@
 package ch.mobility.mobocpp.kafka;
 
+import ch.mobility.kafka.AvroConsumer;
+import ch.mobility.kafka.AvroProducer;
 import ch.mobility.mob2ocpp.TriggerKeywordsV1XEnum;
 import ch.mobility.ocpp2mob.*;
 
@@ -10,7 +12,7 @@ public class AvroProsumer implements Runnable {
 
     public static void init(String hostIPvalue) {
         AvroProducer.init(hostIPvalue);
-        AvroConsumer.init(hostIPvalue);
+        AvroConsumer.init(hostIPvalue, "mobocpp-ui");
         AvroProsumer.get();// Start "Update Number of Backends-Thread"
     }
 
@@ -107,7 +109,7 @@ public class AvroProsumer implements Runnable {
     public List<CSChangeChargingCurrentResponse> doProfile(String csId, Integer maxCurrent) {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
-            getAvroProducer().requestProfile(messageId, csId, 1, maxCurrent);
+            getAvroProducer().requestProfile(messageId, csId, 1, maxCurrent,  null);
             return getAvroConsumer().receive(CSChangeChargingCurrentResponse.class, messageId, wait, 1);
         }
     }
@@ -115,7 +117,7 @@ public class AvroProsumer implements Runnable {
     public List<CSStartChargingResponse> doStart(String csId) {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
-            getAvroProducer().requestStart(messageId, csId, 1, "freecharging", null);
+            getAvroProducer().requestStart(messageId, csId, 1, "freecharging", null, null);
             return getAvroConsumer().receive(CSStartChargingResponse.class, messageId, wait, 1);
         }
     }
