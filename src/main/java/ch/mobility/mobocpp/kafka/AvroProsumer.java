@@ -78,7 +78,7 @@ public class AvroProsumer implements Runnable {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
             getAvroProducer().requestReset(messageId, csId);
-            return getAvroConsumer().receive(CSChangeChargingCurrentResponse.class, messageId, wait, 1);
+            return getAvroConsumer().receive(CSResetResponse.class, messageId, wait, 1);
         }
     }
 
