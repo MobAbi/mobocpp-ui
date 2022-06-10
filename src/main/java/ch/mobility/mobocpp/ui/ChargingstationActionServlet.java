@@ -77,7 +77,7 @@ public class ChargingstationActionServlet extends HttpServlet {
         } else {
             final String dt = "";//DateTimeHelper.humanReadable(Instant.now());
             if (ACTION_RESET.equalsIgnoreCase(actiontyp)) {
-                final List<CSChangeChargingCurrentResponse> actionResponse = getAvroProsumer().doReset(csId);
+                final List<CSResetResponse> actionResponse = getAvroProsumer().doReset(csId);
                 final String prefix = "Neustart" + dt + ": ";
                 if (actionResponse.isEmpty()) {
                     result = new Result(prefix + "Keine Daten empfangen");
