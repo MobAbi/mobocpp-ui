@@ -408,11 +408,12 @@ public class ListServlet extends HttpServlet {
                 "     <th onclick=\"sortTable(3)\">Standort</th>\n" +
                 "     <th onclick=\"sortTable(4)\">PLZ</th>\n" +
                 "     <th onclick=\"sortTable(5)\">Ort</th>\n" +
-                "     <th onclick=\"sortTable(6)\">Standort</th>\n" +
-                "     <th onclick=\"sortTable(7)\">Status</th>\n" +
-                "     <th onclick=\"sortTable(8)\">-</th>\n" +
-                "     <th onclick=\"sortTable(9)\">Laden</th>\n" +
-                "     <th onclick=\"sortTable(10)\">Letzter Kontakt</th>\n" +
+                "     <th onclick=\"sortTable(6)\">KT</th>\n" +
+                "     <th onclick=\"sortTable(7)\">Bezeichnung</th>\n" +
+                "     <th onclick=\"sortTable(8)\">Status</th>\n" +
+                "     <th onclick=\"sortTable(9)\">-</th>\n" +
+                "     <th onclick=\"sortTable(10)\">Laden</th>\n" +
+                "     <th onclick=\"sortTable(11)\">Letzter Kontakt</th>\n" +
                 "  </tr>\n" +
                 " </thead>\n" +
                 " <tbody>\n";
@@ -430,6 +431,7 @@ public class ListServlet extends HttpServlet {
             result += getTD(stammdatenStandort.getStandortId());
             result += getTD(stammdatenStandort.getPlz());
             result += getTD(stammdatenStandort.getOrt());
+            result += getTD(stammdatenStandort.getKanton());
             result += getTD(stammdatenStandort.getBezeichnung());
             result += getTD(getStatusCS(statusConnected));
 //            result += getTDWithColor2(getStatusCS(statusConnected), color);
