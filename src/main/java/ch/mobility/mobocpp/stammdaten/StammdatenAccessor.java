@@ -8,42 +8,80 @@ public class StammdatenAccessor {
 
     public static synchronized StammdatenAccessor get() {
         if (INSTANCE == null) {
-            INSTANCE = new CSStammdatanLoader().load();
+            INSTANCE = new StammdatenLoader().load();
         }
         return INSTANCE;
     }
 
-    private final List<CSStammdaten> stammdatenList;
-    private final List<Integer> ungueltigeZeilen;
-    private final List<String> idsWithDuplicates;
+    private final List<StammdatenStandort> standorteList;
+    private final List<Integer> standorteUngueltigeZeilen;
+    private final List<String> standorteDuplicateIds;
+
+    private final List<StammdatenLadestation> ladestationenList;
+    private final List<Integer> ladestationenUngueltigeZeilen;
+    private final List<String> ladestationenDuplicateIds;
 
     StammdatenAccessor(
-            List<CSStammdaten> stammdatenList,
-            List<Integer> ungueltigeZeilen,
-            List<String> idsWithDuplicates) {
-        this.stammdatenList = stammdatenList;
-        this.ungueltigeZeilen = ungueltigeZeilen;
-        this.idsWithDuplicates = idsWithDuplicates;
+            List<StammdatenStandort> standorteList,
+            List<Integer> standorteUngueltigeZeilen,
+            List<String> standorteDuplicateIds,
+            List<StammdatenLadestation> ladestationenList,
+            List<Integer> ladestationenUngueltigeZeilen,
+            List<String> ladestationenDuplicateIds) {
+        this.standorteList = standorteList;
+        this.standorteUngueltigeZeilen = standorteUngueltigeZeilen;
+        this.standorteDuplicateIds = standorteDuplicateIds;
+        this.ladestationenList = ladestationenList;
+        this.ladestationenUngueltigeZeilen = ladestationenUngueltigeZeilen;
+        this.ladestationenDuplicateIds = ladestationenDuplicateIds;
     }
 
-    public List<CSStammdaten> getStammdatenList() {
-        return stammdatenList;
+    public List<StammdatenStandort> getStandorte() {
+        return standorteList;
+    }
+    
+    public List<StammdatenLadestation> getLadestationen() {
+        return ladestationenList;
     }
 
-    public List<Integer> getUngueltigeZeilen() {
-        return ungueltigeZeilen;
+    public List<Integer> getLadestationenUngueltigeZeilen() {
+        return ladestationenUngueltigeZeilen;
     }
 
-    public List<String> getIdsWithDuplicates() {
-        return idsWithDuplicates;
+    public List<String> getLadestationenDuplicateIds() {
+        return ladestationenDuplicateIds;
     }
 
-    public CSStammdaten forId(String id) {
-        for (CSStammdaten csStammdaten : stammdatenList) {
-            if (csStammdaten.getId().equals(id)) {
-                return csStammdaten;
+    public StammdatenLadestation getStammdatenLadestationById(String ladestationId) {
+        if (ladestationId == null) throw new IllegalStateException("ladestationId is null");
+
+        for (StammdatenLadestation stammdatenLadestation : ladestationenList) {
+            if (stammdatenLadestation.getLadestationId().equals(ladestationId)) {
+                return stammdatenLadestation;
             }
         }
-        return null;
+        throw new IllegalStateException("StammdatenLadestation not found: " + ladestationId);
+    }
+
+    public StammdatenStandort getStammdatenStandortById(String standortId) {
+        if (standortId == null) throw new IllegalStateException("standortId is null");
+
+        for (StammdatenStandort stammdatenStandort : standorteList) {
+            if (stammdatenStandort.getStandortId().equals(standortId)) {
+                return stammdatenStandort;
+            }
+        }
+        throw new IllegalStateException("StammdatenStandort not found: " + standortId);
+    }
+
+    public StammdatenStandort getStammdatenStandortForLadestation(StammdatenLadestation stammdatenLadestation) {
+        if (stammdatenLadestation == null) throw new IllegalStateException("stammdatenLadestation is null");
+
+        for (StammdatenStandort stammdatenStandort : standorteList) {
+            if (stammdatenStandort.getStandortId().equals(stammdatenLadestation.getStandortId())) {
+                return stammdatenStandort;
+            }
+        }
+        throw new IllegalStateException("StammdatenStandort not found: " + stammdatenLadestation.getStandortId());
     }
 }

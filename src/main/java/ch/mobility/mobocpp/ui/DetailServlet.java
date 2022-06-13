@@ -1,8 +1,9 @@
 package ch.mobility.mobocpp.ui;
 
 import ch.mobility.mobocpp.kafka.AvroProsumer;
-import ch.mobility.mobocpp.stammdaten.CSStammdaten;
+import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
+import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
 import ch.mobility.ocpp2mob.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -191,9 +192,9 @@ public class DetailServlet extends HttpServlet {
                 result = addLine("Error", csStatusForIdResponse.getResponseInfo().getError());
             } else {
                 final CSStatusDetail status = csStatusForIdResponse.getStatus();
-                final CSStammdaten csStammdaten = StammdatenAccessor.get().forId(id);
+                final StammdatenLadestation stammdatenLadestation = StammdatenAccessor.get().getStammdatenLadestationById(id);
                 result = addLine("<b>Kennung</b>", status.getId());
-                result+= addLine("Standort", getStammdatenOneRow(csStammdaten));
+                result+= addLine("Standort", getStammdatenOneRow(stammdatenLadestation));
                 result+= addLine("Hersteller - Modell", status.getVendor() + " - " + status.getModel());
                 result+= addLine("FW-Version", status.getFirmwareversion());
                 result+= addLine("Erster Kontakt", DateTimeHelper.humanReadable(DateTimeHelper.parse(status.getFirstContact())));
@@ -214,9 +215,12 @@ public class DetailServlet extends HttpServlet {
         }
     }
 
-    private String getStammdatenOneRow(CSStammdaten csStammdaten) {
-        if (csStammdaten != null) {
-            return csStammdaten.getPlz() + " " + csStammdaten.getOrt() + " " + csStammdaten.getName();
+    private String getStammdatenOneRow(StammdatenLadestation stammdatenLadestation) {
+        if (stammdatenLadestation != null) {
+            final StammdatenStandort stammdatenStandort = StammdatenAccessor.get().getStammdatenStandortForLadestation(stammdatenLadestation);
+            if (stammdatenStandort != null) {
+                return stammdatenStandort.getPlz() + " " + stammdatenStandort.getOrt() + " " + stammdatenStandort.getBezeichnung();
+            }
         }
         return UNBEKANNT;
     }

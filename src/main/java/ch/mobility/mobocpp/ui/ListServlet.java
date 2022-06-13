@@ -1,8 +1,9 @@
 package ch.mobility.mobocpp.ui;
 
 import ch.mobility.mobocpp.kafka.AvroProsumer;
-import ch.mobility.mobocpp.stammdaten.CSStammdaten;
+import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
+import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
 import ch.mobility.ocpp2mob.CSStatusConnected;
 import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
 import ch.mobility.ocpp2mob.ChargingStateEnum;
@@ -38,15 +39,25 @@ public class ListServlet extends HttpServlet {
     static {
         if (doAddFake) {
             //stammdatenMap.add(CSStammdaten.of(KeyLadestationOhneStammdaten, "47.5475926,7.5874733", "Basel Hauptbahnhof"));
-            StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "Raiffeisenbank", "9500", "Wil", "47.4458578","9.1400634"));
-            StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN,  "Hauptsitz", "6343", "Rotkreuz", "47.1442198","8.4349035"));
-            StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler,  "Bahnhof", "1003", "Lausanne", "46.5160055","6.6277126"));
-            StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen,  "SBB Locarno", "6600", "Locarno", "46.1726474","8.7994749"));
-            StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden,  "Jochstrasse", "7000", "Chur", "46.8482","9.5311401"));
-            StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden,  "Europaallee", "8004", "Zurich", "47.3776673","8.5323237"));
+            StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("001", "Raiffeisenbank", "Bahnhofstrasse 1", "9500", "Wil", "SG", "47.4458578","9.1400634"));
+            StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("002", "Hauptsitz", "", "6343", "Rotkreuz", "", "47.1442198","8.4349035"));
+            StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("003", "Bahnhof", "", "1003", "Lausanne", "", "46.5160055","6.6277126"));
+            StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("004", "SBB Locarno", "", "6600", "Locarno", "", "46.1726474","8.7994749"));
+            StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("005", "Jochstrasse", "","7000", "Chur","", "46.8482","9.5311401"));
+            StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("006", "Europaallee", "","8004", "Zurich", "","47.3776673","8.5323237"));
+
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "001"));
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN,  "002"));
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler,  "003"));
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen,  "004"));
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden,  "005"));
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden,  "006"));
         }
-        final String ids = StammdatenAccessor.get().getStammdatenList().stream().map(e -> e.getId()).collect(Collectors.joining(","));
-        System.out.println(StammdatenAccessor.get().getStammdatenList().size()  + " Ladestationen aus der Stammdatendatei gelesen: " + ids);
+        final String standortIds = StammdatenAccessor.get().getStandorte().stream().map(e -> e.getStandortId()).collect(Collectors.joining(","));
+        System.out.println(StammdatenAccessor.get().getStandorte().size()  + " Standorte aus der Stammdatendatei gelesen: " + standortIds);
+
+        final String ladestationIds = StammdatenAccessor.get().getLadestationen().stream().map(e -> e.getLadestationId()).collect(Collectors.joining(","));
+        System.out.println(StammdatenAccessor.get().getLadestationen().size()  + " Ladestationen aus der Stammdatendatei gelesen: " + ladestationIds);
     }
 
     private AvroProsumer getAvroProsumer() {
@@ -62,10 +73,10 @@ public class ListServlet extends HttpServlet {
         AvroProsumer.get().close();
     }
 
-    private CSStammdaten getStammdaten(String key) {
-        for (CSStammdaten csStammdaten : StammdatenAccessor.get().getStammdatenList()) {
-            if (csStammdaten.getId().equalsIgnoreCase(key)) {
-                return csStammdaten;
+    private StammdatenLadestation getStammdatenLadestation(String key) {
+        for (StammdatenLadestation stammdatenLadestation : StammdatenAccessor.get().getLadestationen()) {
+            if (stammdatenLadestation.getLadestationId().equalsIgnoreCase(key)) {
+                return stammdatenLadestation;
             }
         }
         return null;
@@ -105,9 +116,9 @@ public class ListServlet extends HttpServlet {
 //        final List<CSStatusConnected> keineStammdaten = new ArrayList<>(); // A1
         for (CSStatusConnectedResponse csStatusConnectedResponse : receiveConnected) {
             for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
-                final CSStammdaten stammdaten = getStammdaten(csStatusConnected.getId());
+                final StammdatenLadestation stammdaten = getStammdatenLadestation(csStatusConnected.getId());
                 if (stammdaten == null) {
-                    StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(csStatusConnected.getId(), UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT));
+                    StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(csStatusConnected.getId(), UNBEKANNT));
 //                    keineStammdaten.add(csStatusConnected);
                 }
             }
@@ -139,12 +150,12 @@ public class ListServlet extends HttpServlet {
 //    Gelb: Problem, Hinweis zum Problem anzeigbar sofern vorhanden
 //    Rot: Fehler, Hinweis zum Fehler anzeigbar sofern vorhanden
 
-    private String calcColor(CSStammdaten stammdaten, CSStatusConnected statusConnected) {
+    private String calcColor(StammdatenLadestation stammdaten, CSStatusConnected statusConnected) {
 
         if (stammdaten == null) throw new IllegalArgumentException("Stammdaten darf nicht leer sein");
 
         final String result;
-        final Instant lastContactValue = lastContact.get(stammdaten.getId());
+        final Instant lastContactValue = lastContact.get(stammdaten.getLadestationId());
         if (lastContactValue == null) {
             result = RED;
         } else {
@@ -386,7 +397,7 @@ public class ListServlet extends HttpServlet {
                 "     <input class=\"filterInput\" type=\"text\" id=\"filterInput\" onkeyup=\"filterFunction()\" placeholder=\"Filter...\" title=\"Filterbegriff eingeben\">" +
                 "     <button class=\"button\" onClick=\"clearFilter()\">Filter zur&uuml;cksetzen</button>" +
                 "     <button class=\"button\" onClick=\"reload()\">Ansicht Aktualisieren</button>" +
-                "     <label class=\"infolabel\">" + getInfolabelText(StammdatenAccessor.get().getStammdatenList().size()) + "</label>" +
+                "     <label class=\"infolabel\">" + getInfolabelText(StammdatenAccessor.get().getLadestationen().size()) + "</label>" +
                 "  </div>" +
                 "<table class=”sortable” id=\"cstable\">\n" +
                 " <thead>\n" +
@@ -394,29 +405,32 @@ public class ListServlet extends HttpServlet {
                 "     <th onclick=\"sortTable(0)\">Kennung</th>\n" +
                 "     <th onclick=\"sortTable(1)\">Hersteller</th>\n" +
                 "     <th onclick=\"sortTable(2)\">Modell</th>\n" +
-                "     <th onclick=\"sortTable(3)\">PLZ</th>\n" +
-                "     <th onclick=\"sortTable(4)\">Ort</th>\n" +
-                "     <th onclick=\"sortTable(5)\">Standort</th>\n" +
-                "     <th onclick=\"sortTable(6)\">Status</th>\n" +
-                "     <th onclick=\"sortTable(7)\">-</th>\n" +
-                "     <th onclick=\"sortTable(8)\">Laden</th>\n" +
-                "     <th onclick=\"sortTable(9)\">Letzter Kontakt</th>\n" +
+                "     <th onclick=\"sortTable(3)\">Standort</th>\n" +
+                "     <th onclick=\"sortTable(4)\">PLZ</th>\n" +
+                "     <th onclick=\"sortTable(5)\">Ort</th>\n" +
+                "     <th onclick=\"sortTable(6)\">Standort</th>\n" +
+                "     <th onclick=\"sortTable(7)\">Status</th>\n" +
+                "     <th onclick=\"sortTable(8)\">-</th>\n" +
+                "     <th onclick=\"sortTable(9)\">Laden</th>\n" +
+                "     <th onclick=\"sortTable(10)\">Letzter Kontakt</th>\n" +
                 "  </tr>\n" +
                 " </thead>\n" +
                 " <tbody>\n";
 
-        for (CSStammdaten stammdaten : StammdatenAccessor.get().getStammdatenList()) {
-            final CSStatusConnected statusConnected = getStatusConnected(receiveConnected, stammdaten.getId());
-            final Instant lastContactValue = lastContact.get(stammdaten.getId());
-            final String id = stammdaten.getId();
-            final String color = calcColor(stammdaten, statusConnected);
+        for (StammdatenLadestation stammdatenLadestation : StammdatenAccessor.get().getLadestationen()) {
+            final StammdatenStandort stammdatenStandort = StammdatenAccessor.get().getStammdatenStandortForLadestation(stammdatenLadestation);
+            final CSStatusConnected statusConnected = getStatusConnected(receiveConnected, stammdatenLadestation.getLadestationId());
+            final Instant lastContactValue = lastContact.get(stammdatenLadestation.getLadestationId());
+            final String id = stammdatenLadestation.getLadestationId();
+            final String color = calcColor(stammdatenLadestation, statusConnected);
             result += "   <tr>\n";
             result += getTDWithLink(id, id);
             result += getTD(getVendor(statusConnected));
             result += getTD(getModel(statusConnected));
-            result += getTD(stammdaten.getPlz());
-            result += getTD(stammdaten.getOrt());
-            result += getTD(stammdaten.getName());
+            result += getTD(stammdatenStandort.getStandortId());
+            result += getTD(stammdatenStandort.getPlz());
+            result += getTD(stammdatenStandort.getOrt());
+            result += getTD(stammdatenStandort.getBezeichnung());
             result += getTD(getStatusCS(statusConnected));
 //            result += getTDWithColor2(getStatusCS(statusConnected), color);
             result += getTDWithColor(color, color);

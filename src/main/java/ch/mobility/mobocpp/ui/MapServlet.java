@@ -1,8 +1,9 @@
 package ch.mobility.mobocpp.ui;
 
 import ch.mobility.mobocpp.kafka.AvroProsumer;
-import ch.mobility.mobocpp.stammdaten.CSStammdaten;
+import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
+import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
 import ch.mobility.ocpp2mob.CSStatusConnected;
 import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
 import ch.mobility.ocpp2mob.ChargingStateEnum;
@@ -34,15 +35,24 @@ public class MapServlet extends HttpServlet {
     private static Map<String, Instant> lastContact = new HashMap<>();
     static {
         //stammdatenMap.add(CSStammdaten.of(KeyLadestationOhneStammdaten, "47.5475926,7.5874733", "Basel Hauptbahnhof"));
-        StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "Raiffeisenbank", "9500", "Wil", "47.4458578","9.1400634"));
-        StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN,  "Hauptsitz", "6343", "Rotkreuz", "47.1442198","8.4349035"));
-        StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler,  "Bahnhof", "1003", "Lausanne", "46.5160055","6.6277126"));
-        StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen,  "SBB Locarno", "6600", "Locarno", "46.1726474","8.7994749"));
-        StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden,  "Jochstrasse", "7000", "Chur", "46.8482","9.5311401"));
-        StammdatenAccessor.get().getStammdatenList().add(CSStammdaten.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden,  "Europaallee", "8004", "Zurich", "47.3776673","8.5323237"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("001", "Raiffeisenbank", "Bahnhofstrasse 1", "9500", "Wil", "SG", "47.4458578","9.1400634"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("002", "Hauptsitz", "", "6343", "Rotkreuz", "", "47.1442198","8.4349035"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("003", "Bahnhof", "", "1003", "Lausanne", "", "46.5160055","6.6277126"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("004", "SBB Locarno", "", "6600", "Locarno", "", "46.1726474","8.7994749"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("005", "Jochstrasse", "","7000", "Chur","", "46.8482","9.5311401"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("006", "Europaallee", "","8004", "Zurich", "","47.3776673","8.5323237"));
 
-        final String ids = StammdatenAccessor.get().getStammdatenList().stream().map(e -> e.getId()).collect(Collectors.joining(","));
-        System.out.println(StammdatenAccessor.get().getStammdatenList().size()  + " Ladestationen aus der Stammdatendatei gelesen: " + ids);
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "001"));
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN,  "002"));
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler,  "003"));
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen,  "004"));
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden,  "005"));
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden,  "006"));
+        final String standortIds = StammdatenAccessor.get().getStandorte().stream().map(e -> e.getStandortId()).collect(Collectors.joining(","));
+        System.out.println(StammdatenAccessor.get().getStandorte().size()  + " Standorte aus der Stammdatendatei gelesen: " + standortIds);
+
+        final String ladestationIds = StammdatenAccessor.get().getLadestationen().stream().map(e -> e.getLadestationId()).collect(Collectors.joining(","));
+        System.out.println(StammdatenAccessor.get().getLadestationen().size()  + " Ladestationen aus der Stammdatendatei gelesen: " + ladestationIds);
     }
 
     private AvroProsumer getAvroProsumer() {
@@ -58,10 +68,10 @@ public class MapServlet extends HttpServlet {
         AvroProsumer.get().close();
     }
 
-    private CSStammdaten getStammdaten(String key) {
-        for (CSStammdaten csStammdaten : StammdatenAccessor.get().getStammdatenList()) {
-            if (csStammdaten.getId().equalsIgnoreCase(key)) {
-                return csStammdaten;
+    private StammdatenLadestation getStammdatenLadestation(String key) {
+        for (StammdatenLadestation stammdatenLadestation : StammdatenAccessor.get().getLadestationen()) {
+            if (stammdatenLadestation.getLadestationId().equalsIgnoreCase(key)) {
+                return stammdatenLadestation;
             }
         }
         return null;
@@ -95,7 +105,7 @@ public class MapServlet extends HttpServlet {
         final List<CSStatusConnected> keineStammdaten = new ArrayList<>(); // A1
         for (CSStatusConnectedResponse csStatusConnectedResponse : receiveConnected) {
             for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
-                final CSStammdaten stammdaten = getStammdaten(csStatusConnected.getId());
+                final StammdatenLadestation stammdaten = getStammdatenLadestation(csStatusConnected.getId());
                 if (stammdaten == null) {
                     keineStammdaten.add(csStatusConnected);
                 }
@@ -228,22 +238,24 @@ public class MapServlet extends HttpServlet {
         response.getWriter().println(getJScriptMap());
 
         int counter = 0;
-        for (CSStammdaten stammdaten : StammdatenAccessor.get().getStammdatenList()) {
-            final CSStatusConnected statusConnected = getStatusConnected(receiveConnected, stammdaten.getId());
-            final String color = calcColor(stammdaten, statusConnected);
-            Instant lastContactValue = lastContact.get(stammdaten.getId());
+        for (StammdatenLadestation stammdatenLadestation : StammdatenAccessor.get().getLadestationen()) {
+            final StammdatenStandort stammdatenStandort = StammdatenAccessor.get().getStammdatenStandortForLadestation(stammdatenLadestation);
+
+            final CSStatusConnected statusConnected = getStatusConnected(receiveConnected, stammdatenLadestation.getLadestationId());
+            final String color = calcColor(stammdatenLadestation, statusConnected);
+            Instant lastContactValue = lastContact.get(stammdatenLadestation.getLadestationId());
 
             final String circleName = "circle" + counter;
-            String popuptext = stammdaten.getName() + " [" + stammdaten.getId() + "]<br>";
+            String popuptext = stammdatenStandort.getBezeichnung() + " [" + stammdatenLadestation.getLadestationId() + "]<br>";
             popuptext += getStatusString(statusConnected) + "<br>";
             popuptext += "Letzter Kontakt: " + DateTimeHelper.humanReadable(lastContactValue) + "<br>";
-            popuptext += "<button onClick=\\\"showCS(" + circleName + ",'" + stammdaten.getId() + "')\\\">Details</button>";
+            popuptext += "<button onClick=\\\"showCS(" + circleName + ",'" + stammdatenLadestation.getLadestationId() + "')\\\">Details</button>";
 
-            //            popuptext += " <a href=cs?cs=" + stammdaten.getId() + ">Details</a>";
+            //            popuptext += " <a href=cs?cs=" + stammdatenLadestation.getId() + ">Details</a>";
 
-//            response.getWriter().println(getJScriptCircleMitPopupname(counter, stammdaten.getCoordinates(), color, popupName));
-            response.getWriter().println(getJScriptCircle(circleName, stammdaten.getLongitude() + "," + stammdaten.getLatitude(), color, popuptext));
-//            response.getWriter().println(getJScriptCircle(counter, stammdaten.getCoordinates(), color, stammdaten.getId()));
+//            response.getWriter().println(getJScriptCircleMitPopupname(counter, stammdatenLadestation.getCoordinates(), color, popupName));
+            response.getWriter().println(getJScriptCircle(circleName, stammdatenStandort.getLongitude() + "," + stammdatenStandort.getLatitude(), color, popuptext));
+//            response.getWriter().println(getJScriptCircle(counter, stammdatenLadestation.getCoordinates(), color, stammdatenLadestation.getId()));
             counter++;
         }
 
@@ -273,12 +285,12 @@ public class MapServlet extends HttpServlet {
 //    Gelb: Problem, Hinweis zum Problem anzeigbar sofern vorhanden
 //    Rot: Fehler, Hinweis zum Fehler anzeigbar sofern vorhanden
 
-    private String calcColor(CSStammdaten stammdaten, CSStatusConnected statusConnected) {
+    private String calcColor(StammdatenLadestation stammdaten, CSStatusConnected statusConnected) {
 
         if (stammdaten == null) throw new IllegalArgumentException("Stammdaten darf nicht leer sein");
 
         final String result;
-        final Instant lastContactValue = lastContact.get(stammdaten.getId());
+        final Instant lastContactValue = lastContact.get(stammdaten.getLadestationId());
         if (lastContactValue == null) {
             result = RED;
         } else {

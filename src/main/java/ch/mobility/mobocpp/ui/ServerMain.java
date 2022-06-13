@@ -7,6 +7,8 @@ import sun.misc.Signal;
 
 import java.net.URL;
 
+// https://www.torsten-horn.de/techdocs/jee-rest.htm#JaxRsMitJetty
+// https://stackoverflow.com/questions/10048004/integrating-jetty-with-jax-rs-jersey
 public class ServerMain {
 
     public static void main(String[] args) throws Exception {
