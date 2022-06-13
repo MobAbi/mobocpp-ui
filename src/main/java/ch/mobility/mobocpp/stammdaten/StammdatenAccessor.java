@@ -4,6 +4,8 @@ import java.util.List;
 
 public class StammdatenAccessor {
 
+    private static final String UNBEKANNT = "Unbekannt";
+
     private static StammdatenAccessor INSTANCE = null;
 
     public static synchronized StammdatenAccessor get() {
@@ -71,7 +73,7 @@ public class StammdatenAccessor {
                 return stammdatenStandort;
             }
         }
-        throw new IllegalStateException("StammdatenStandort not found: " + standortId);
+        return createDummyStammdatenStandort(standortId);
     }
 
     public StammdatenStandort getStammdatenStandortForLadestation(StammdatenLadestation stammdatenLadestation) {
@@ -82,6 +84,10 @@ public class StammdatenAccessor {
                 return stammdatenStandort;
             }
         }
-        throw new IllegalStateException("StammdatenStandort not found: " + stammdatenLadestation.getStandortId());
+        return createDummyStammdatenStandort(stammdatenLadestation.getStandortId());
+    }
+
+    private StammdatenStandort createDummyStammdatenStandort(String standortId) {
+        return StammdatenStandort.of(standortId, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT);
     }
 }
