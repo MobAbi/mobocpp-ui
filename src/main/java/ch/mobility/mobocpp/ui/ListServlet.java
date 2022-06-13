@@ -330,8 +330,9 @@ public class ListServlet extends HttpServlet {
         return "    <td style=\"background:" + color + "; color:" + color + ";\">" + value + "</td>";
     }
 
-    private String getTDWithLink(String id, String value) {
-        return "    <td><a href=\"detail?id=" + id + "\">" + value + "</a></td>";
+    private String getTDWithLink(String ref, String value) {
+        return "    <td><a href=" + ref + ">" + value + "</a></td>";
+//        return "    <td><a href=\"detail?id=" + ref + "\">" + value + "</a></td>";
     }
 
     private String getVendor(CSStatusConnected statusConnected) {
@@ -381,9 +382,9 @@ public class ListServlet extends HttpServlet {
        return DateTimeHelper.getSecondsSince(lastContact);
     }
 
-    private String getInfolabelText(int anzahl) {
-        return "Letzte Aktualisierung: " + DateTimeHelper.humanReadable(Instant.now()) + " - Anzahl: " + anzahl;
-    }
+//    private String getInfolabelText(int anzahl) {
+//        return "Letzte Aktualisierung: " + DateTimeHelper.humanReadable(Instant.now()) + " - Anzahl: " + anzahl;
+//    }
 
     private String getInfolabelText(String msg) {
         return "Letzte Aktualisierung: " + DateTimeHelper.humanReadable(Instant.now()) + " - " + msg;
@@ -412,15 +413,18 @@ public class ListServlet extends HttpServlet {
             final Instant lastContactValue = lastContact.get(stammdatenLadestation.getLadestationId());
             final String id = stammdatenLadestation.getLadestationId();
             final String color = calcColor(stammdatenLadestation, statusConnected);
+            final String detailLink = "\"detail?id=" + id + "\"";
+            final String googleMapsLink = "\"https://maps.google.com/?q=" + stammdatenStandort.getLatitude() + "," + stammdatenStandort.getLongitude() + "\" target=\"_blank\"";
             tableBody += "   <tr>\n";
-            tableBody += getTDWithLink(id, id);
+            tableBody += getTDWithLink(detailLink, id);
             tableBody += getTD(getVendor(statusConnected));
             tableBody += getTD(getModel(statusConnected));
-            tableBody += getTD(stammdatenStandort.getStandortId());
+//            tableBody += getTD(stammdatenStandort.getStandortId());
+            tableBody += getTDWithLink(googleMapsLink, stammdatenStandort.getStandortId());
             tableBody += getTD(stammdatenStandort.getStrasse());
             tableBody += getTD(stammdatenStandort.getPlz());
             tableBody += getTD(stammdatenStandort.getOrt());
-            tableBody += getTD(stammdatenStandort.getKanton());
+//            tableBody += getTD(stammdatenStandort.getKanton());
             tableBody += getTD(stammdatenStandort.getBezeichnung());
             tableBody += getTD(status);
 //            tableBody += getTDWithColor2(getStatusCS(statusConnected), color);
@@ -448,8 +452,8 @@ public class ListServlet extends HttpServlet {
                         "     <input class=\"filterInput\" type=\"text\" id=\"filterInput\" onkeyup=\"filterFunction()\" placeholder=\"Filter...\" title=\"Filterbegriff eingeben\">" +
                         "     <button class=\"button\" onClick=\"clearFilter()\">Filter zur&uuml;cksetzen</button>" +
                         "     <button class=\"button\" onClick=\"reload()\">Ansicht Aktualisieren</button>" +
-                        "     <label class=\"infolabel\">" + getInfolabelText(statusLabel) + "</label>" +
-                        //"     <label class=\"infolabel\">" + getInfolabelText(StammdatenAccessor.get().getLadestationen().size()) + "</label>" +
+                        //"     <label class=\"infolabel\">" + getInfolabelText(statusLabel) + "</label>" +
+                        "     <label class=\"infolabel\">" + getInfolabelText("Ladestationen: " + StammdatenAccessor.get().getLadestationen().size()) + "</label>" +
                         "  </div>" +
                         "<table class=”sortable” id=\"cstable\">\n" +
                         " <thead>\n" +
@@ -461,12 +465,12 @@ public class ListServlet extends HttpServlet {
                         "     <th onclick=\"sortTable(4)\">Strasse</th>\n" +
                         "     <th onclick=\"sortTable(5)\">PLZ</th>\n" +
                         "     <th onclick=\"sortTable(6)\">Ort</th>\n" +
-                        "     <th onclick=\"sortTable(7)\">KT</th>\n" +
-                        "     <th onclick=\"sortTable(8)\">Bezeichnung</th>\n" +
-                        "     <th onclick=\"sortTable(9)\">Status</th>\n" +
-                        "     <th onclick=\"sortTable(10)\">-</th>\n" +
-                        "     <th onclick=\"sortTable(11)\">Laden</th>\n" +
-                        "     <th onclick=\"sortTable(12)\">Letzter Kontakt</th>\n" +
+//                        "     <th onclick=\"sortTable(7)\">KT</th>\n" +
+                        "     <th onclick=\"sortTable(7)\">Bezeichnung</th>\n" +
+                        "     <th onclick=\"sortTable(8)\">Status</th>\n" +
+                        "     <th onclick=\"sortTable(9)\">-</th>\n" +
+                        "     <th onclick=\"sortTable(10)\">Laden</th>\n" +
+                        "     <th onclick=\"sortTable(11)\">Letzter Kontakt</th>\n" +
                         "  </tr>\n" +
                         " </thead>\n" +
                         " <tbody>\n";
