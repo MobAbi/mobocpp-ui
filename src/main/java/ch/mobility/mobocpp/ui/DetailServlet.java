@@ -219,7 +219,10 @@ public class DetailServlet extends HttpServlet {
         if (stammdatenLadestation != null) {
             final StammdatenStandort stammdatenStandort = StammdatenAccessor.get().getStammdatenStandortForLadestation(stammdatenLadestation);
             if (stammdatenStandort != null) {
-                return stammdatenStandort.getPlz() + " " + stammdatenStandort.getOrt() + " " + stammdatenStandort.getBezeichnung();
+                return stammdatenStandort.getStandortId() + " - " +//
+                        stammdatenStandort.getStrasse() + " - " + //
+                        stammdatenStandort.getPlz() + " " + stammdatenStandort.getOrt() + " - " +//
+                        stammdatenStandort.getBezeichnung();
             }
         }
         return UNBEKANNT;
