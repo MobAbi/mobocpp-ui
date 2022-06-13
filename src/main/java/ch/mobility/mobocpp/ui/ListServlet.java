@@ -417,6 +417,7 @@ public class ListServlet extends HttpServlet {
             tableBody += getTD(getVendor(statusConnected));
             tableBody += getTD(getModel(statusConnected));
             tableBody += getTD(stammdatenStandort.getStandortId());
+            tableBody += getTD(stammdatenStandort.getStrasse());
             tableBody += getTD(stammdatenStandort.getPlz());
             tableBody += getTD(stammdatenStandort.getOrt());
             tableBody += getTD(stammdatenStandort.getKanton());
@@ -457,14 +458,15 @@ public class ListServlet extends HttpServlet {
                         "     <th onclick=\"sortTable(1)\">Hersteller</th>\n" +
                         "     <th onclick=\"sortTable(2)\">Modell</th>\n" +
                         "     <th onclick=\"sortTable(3)\">Standort</th>\n" +
-                        "     <th onclick=\"sortTable(4)\">PLZ</th>\n" +
-                        "     <th onclick=\"sortTable(5)\">Ort</th>\n" +
-                        "     <th onclick=\"sortTable(6)\">KT</th>\n" +
-                        "     <th onclick=\"sortTable(7)\">Bezeichnung</th>\n" +
-                        "     <th onclick=\"sortTable(8)\">Status</th>\n" +
-                        "     <th onclick=\"sortTable(9)\">-</th>\n" +
-                        "     <th onclick=\"sortTable(10)\">Laden</th>\n" +
-                        "     <th onclick=\"sortTable(11)\">Letzter Kontakt</th>\n" +
+                        "     <th onclick=\"sortTable(4)\">Strasse</th>\n" +
+                        "     <th onclick=\"sortTable(5)\">PLZ</th>\n" +
+                        "     <th onclick=\"sortTable(6)\">Ort</th>\n" +
+                        "     <th onclick=\"sortTable(7)\">KT</th>\n" +
+                        "     <th onclick=\"sortTable(8)\">Bezeichnung</th>\n" +
+                        "     <th onclick=\"sortTable(9)\">Status</th>\n" +
+                        "     <th onclick=\"sortTable(10)\">-</th>\n" +
+                        "     <th onclick=\"sortTable(11)\">Laden</th>\n" +
+                        "     <th onclick=\"sortTable(12)\">Letzter Kontakt</th>\n" +
                         "  </tr>\n" +
                         " </thead>\n" +
                         " <tbody>\n";
