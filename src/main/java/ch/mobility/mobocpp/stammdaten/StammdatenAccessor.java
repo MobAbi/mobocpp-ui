@@ -88,6 +88,6 @@ public class StammdatenAccessor {
     }
 
     private StammdatenStandort createDummyStammdatenStandort(String standortId) {
-        return StammdatenStandort.of(standortId, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT);
+        return StammdatenStandort.of(standortId, UNBEKANNT, UNBEKANNT, UNBEKANNT, UNBEKANNT, "NA", UNBEKANNT, UNBEKANNT);
     }
 }
