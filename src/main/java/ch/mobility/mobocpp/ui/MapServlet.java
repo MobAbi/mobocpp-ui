@@ -36,11 +36,11 @@ public class MapServlet extends HttpServlet {
     static {
         //stammdatenMap.add(CSStammdaten.of(KeyLadestationOhneStammdaten, "47.5475926,7.5874733", "Basel Hauptbahnhof"));
         StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("001", "Raiffeisenbank", "Bahnhofstrasse 1", "9500", "Wil", "SG", "47.4458578","9.1400634"));
-        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("002", "Hauptsitz", "", "6343", "Rotkreuz", "", "47.1442198","8.4349035"));
-        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("003", "Bahnhof", "", "1003", "Lausanne", "", "46.5160055","6.6277126"));
-        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("004", "SBB Locarno", "", "6600", "Locarno", "", "46.1726474","8.7994749"));
-        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("005", "Jochstrasse", "","7000", "Chur","", "46.8482","9.5311401"));
-        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("006", "Europaallee", "","8004", "Zurich", "","47.3776673","8.5323237"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("002", "Hauptsitz", "Hauptstrasse 33", "6343", "Rotkreuz", "ZG", "47.1442198","8.4349035"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("003", "Bahnhof", "Genferstrasse 12", "1003", "Lausanne", "GE", "46.5160055","6.6277126"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("004", "SBB Locarno", "Lago Maggiore 44", "6600", "Locarno", "TI", "46.1726474","8.7994749"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("005", "Jochstrasse", "Churfirstgasse 2","7000", "Chur","GR", "46.8482","9.5311401"));
+        StammdatenAccessor.get().getStandorte().add(StammdatenStandort.of("006", "Europaallee", "Prollstrasse 53","8004", "Zurich", "ZH","47.3776673","8.5323237"));
 
         StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktKleinerN, "001"));
         StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN,  "002"));

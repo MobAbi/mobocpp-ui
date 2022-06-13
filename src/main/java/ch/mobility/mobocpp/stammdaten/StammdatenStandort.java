@@ -35,7 +35,7 @@ public class StammdatenStandort {
         checkNullValue(ort, "ort");
         checkNullValue(kanton, "kanton");
         if (kanton.length() != 2) {
-            throw new IllegalArgumentException("Kanton muss 2 Zeichen lang sein: " + kanton.length());
+            throw new IllegalArgumentException("Kanton muss 2 Zeichen lang sein: " + kanton);
         }
         checkNullValue(longitude, "longitude");
         checkNullValue(latitude, "latitude");
