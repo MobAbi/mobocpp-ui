@@ -1,8 +1,8 @@
 package ch.mobility.mobocpp.ui;
 
 import ch.mobility.mobocpp.kafka.AvroProsumer;
-import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
+import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
 import ch.mobility.ocpp2mob.CSStatusConnected;
 import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
@@ -15,9 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @WebServlet("/list")
@@ -387,62 +385,90 @@ public class ListServlet extends HttpServlet {
         return "Letzte Aktualisierung: " + DateTimeHelper.humanReadable(Instant.now()) + " - Anzahl: " + anzahl;
     }
 
+    private String getInfolabelText(String msg) {
+        return "Letzte Aktualisierung: " + DateTimeHelper.humanReadable(Instant.now()) + " - " + msg;
+    }
+
+    private void calcStatus(Map<String, Integer> statusMap, String status) {
+        Integer count = statusMap.get(status);
+        if (count == null) {
+            count = Integer.valueOf(0);
+        }
+        count = count + 1;
+        statusMap.put(status, count);
+    }
+
     // https://www.w3schools.com/howto/howto_js_filter_table.asp
     // https://www.w3schools.com/css/css_table.asp
     // https://www.digitalocean.com/community/tutorials/how-to-style-a-table-with-css
     private String getBody(List<CSStatusConnectedResponse> receiveConnected) {
-        //stammdatenMap
-        String result =
-                "  <div class=\"controlInput\">" +
-                "     <input class=\"filterInput\" type=\"text\" id=\"filterInput\" onkeyup=\"filterFunction()\" placeholder=\"Filter...\" title=\"Filterbegriff eingeben\">" +
-                "     <button class=\"button\" onClick=\"clearFilter()\">Filter zur&uuml;cksetzen</button>" +
-                "     <button class=\"button\" onClick=\"reload()\">Ansicht Aktualisieren</button>" +
-                "     <label class=\"infolabel\">" + getInfolabelText(StammdatenAccessor.get().getLadestationen().size()) + "</label>" +
-                "  </div>" +
-                "<table class=”sortable” id=\"cstable\">\n" +
-                " <thead>\n" +
-                "   <tr>\n" +
-                "     <th onclick=\"sortTable(0)\">Kennung</th>\n" +
-                "     <th onclick=\"sortTable(1)\">Hersteller</th>\n" +
-                "     <th onclick=\"sortTable(2)\">Modell</th>\n" +
-                "     <th onclick=\"sortTable(3)\">Standort</th>\n" +
-                "     <th onclick=\"sortTable(4)\">PLZ</th>\n" +
-                "     <th onclick=\"sortTable(5)\">Ort</th>\n" +
-                "     <th onclick=\"sortTable(6)\">KT</th>\n" +
-                "     <th onclick=\"sortTable(7)\">Bezeichnung</th>\n" +
-                "     <th onclick=\"sortTable(8)\">Status</th>\n" +
-                "     <th onclick=\"sortTable(9)\">-</th>\n" +
-                "     <th onclick=\"sortTable(10)\">Laden</th>\n" +
-                "     <th onclick=\"sortTable(11)\">Letzter Kontakt</th>\n" +
-                "  </tr>\n" +
-                " </thead>\n" +
-                " <tbody>\n";
-
+        Map<String, Integer> statusMap = new HashMap<>();
+        String tableBody = "";
         for (StammdatenLadestation stammdatenLadestation : StammdatenAccessor.get().getLadestationen()) {
             final StammdatenStandort stammdatenStandort = StammdatenAccessor.get().getStammdatenStandortForLadestation(stammdatenLadestation);
             final CSStatusConnected statusConnected = getStatusConnected(receiveConnected, stammdatenLadestation.getLadestationId());
+            final String status = getStatusCS(statusConnected);
+            calcStatus(statusMap, status);
             final Instant lastContactValue = lastContact.get(stammdatenLadestation.getLadestationId());
             final String id = stammdatenLadestation.getLadestationId();
             final String color = calcColor(stammdatenLadestation, statusConnected);
-            result += "   <tr>\n";
-            result += getTDWithLink(id, id);
-            result += getTD(getVendor(statusConnected));
-            result += getTD(getModel(statusConnected));
-            result += getTD(stammdatenStandort.getStandortId());
-            result += getTD(stammdatenStandort.getPlz());
-            result += getTD(stammdatenStandort.getOrt());
-            result += getTD(stammdatenStandort.getKanton());
-            result += getTD(stammdatenStandort.getBezeichnung());
-            result += getTD(getStatusCS(statusConnected));
-//            result += getTDWithColor2(getStatusCS(statusConnected), color);
-            result += getTDWithColor(color, color);
-            result += getTD(getStatusLadung(statusConnected));
-            result += getTD(getLetztenKontakt(lastContactValue));
-            result += "   </tr>\n";
+            tableBody += "   <tr>\n";
+            tableBody += getTDWithLink(id, id);
+            tableBody += getTD(getVendor(statusConnected));
+            tableBody += getTD(getModel(statusConnected));
+            tableBody += getTD(stammdatenStandort.getStandortId());
+            tableBody += getTD(stammdatenStandort.getPlz());
+            tableBody += getTD(stammdatenStandort.getOrt());
+            tableBody += getTD(stammdatenStandort.getKanton());
+            tableBody += getTD(stammdatenStandort.getBezeichnung());
+            tableBody += getTD(status);
+//            tableBody += getTDWithColor2(getStatusCS(statusConnected), color);
+            tableBody += getTDWithColor(color, color);
+            tableBody += getTD(getStatusLadung(statusConnected));
+            tableBody += getTD(getLetztenKontakt(lastContactValue));
+            tableBody += "   </tr>\n";
+        }
+        tableBody += " </tbody>\n" +
+                "</table>";
+
+        final SortedSet<String> keys = new TreeSet<>(statusMap.keySet());
+        String statusLabel = null;
+        for (String key : keys) {
+            Integer count = statusMap.get(key);
+            if (statusLabel == null) {
+                statusLabel = key + ": " + count;
+            } else {
+                statusLabel += ", " + key + ": " + count;
+            }
         }
 
-        result += " </tbody>\n" +
-                "</table>";
-        return result;
+        String tableHead =
+                "  <div class=\"controlInput\">" +
+                        "     <input class=\"filterInput\" type=\"text\" id=\"filterInput\" onkeyup=\"filterFunction()\" placeholder=\"Filter...\" title=\"Filterbegriff eingeben\">" +
+                        "     <button class=\"button\" onClick=\"clearFilter()\">Filter zur&uuml;cksetzen</button>" +
+                        "     <button class=\"button\" onClick=\"reload()\">Ansicht Aktualisieren</button>" +
+                        "     <label class=\"infolabel\">" + getInfolabelText(statusLabel) + "</label>" +
+                        //"     <label class=\"infolabel\">" + getInfolabelText(StammdatenAccessor.get().getLadestationen().size()) + "</label>" +
+                        "  </div>" +
+                        "<table class=”sortable” id=\"cstable\">\n" +
+                        " <thead>\n" +
+                        "   <tr>\n" +
+                        "     <th onclick=\"sortTable(0)\">Kennung</th>\n" +
+                        "     <th onclick=\"sortTable(1)\">Hersteller</th>\n" +
+                        "     <th onclick=\"sortTable(2)\">Modell</th>\n" +
+                        "     <th onclick=\"sortTable(3)\">Standort</th>\n" +
+                        "     <th onclick=\"sortTable(4)\">PLZ</th>\n" +
+                        "     <th onclick=\"sortTable(5)\">Ort</th>\n" +
+                        "     <th onclick=\"sortTable(6)\">KT</th>\n" +
+                        "     <th onclick=\"sortTable(7)\">Bezeichnung</th>\n" +
+                        "     <th onclick=\"sortTable(8)\">Status</th>\n" +
+                        "     <th onclick=\"sortTable(9)\">-</th>\n" +
+                        "     <th onclick=\"sortTable(10)\">Laden</th>\n" +
+                        "     <th onclick=\"sortTable(11)\">Letzter Kontakt</th>\n" +
+                        "  </tr>\n" +
+                        " </thead>\n" +
+                        " <tbody>\n";
+
+        return tableHead + tableBody;
     }
 }
