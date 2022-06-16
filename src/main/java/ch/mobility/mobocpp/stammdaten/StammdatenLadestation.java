@@ -3,15 +3,17 @@ package ch.mobility.mobocpp.stammdaten;
 public class StammdatenLadestation {
     private final String ladestationId;
     private final String standortId;
+    private final String bezeichnung;
 
-    public static StammdatenLadestation of(String ladestationId, String standortId) {
-        return new StammdatenLadestation(ladestationId, standortId);
+    public static StammdatenLadestation of(String ladestationId, String standortId, String bezeichnung) {
+        return new StammdatenLadestation(ladestationId, standortId, bezeichnung);
     }
 
-    private StammdatenLadestation(String ladestationId, String standortId) {
+    private StammdatenLadestation(String ladestationId, String standortId, String bezeichnung) {
         checkValues(ladestationId, standortId);
         this.ladestationId = ladestationId;
         this.standortId = standortId;
+        this.bezeichnung = bezeichnung == null ? "" : bezeichnung;
     }
 
     private void checkValues(String ladestationId, String standortId) {
@@ -33,11 +35,23 @@ public class StammdatenLadestation {
         return standortId;
     }
 
+    public String getBezeichnung() {
+        return bezeichnung;
+    }
+
+    public String getBezeichnungWithSeparator() {
+        if (!"".equals(bezeichnung)) {
+            return " - " + bezeichnung;
+        }
+        return "";
+    }
+
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + "[" +
                 "LadestationId: '" + getLadestationId() +
                 "', StandortId: '" + getStandortId() +
+                "', Bezeichnung: '" + getBezeichnung() +
                 "']";
     }
 }

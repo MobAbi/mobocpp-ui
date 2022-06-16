@@ -16,9 +16,10 @@ public class StammdatenLoader {
     private static String FILENAME_LADESTATIONEN = "stammdatenladestationen.csv";
     protected static String DELIMITER = ";";
     protected static String HEADER_LINE_STANDORT = "STANDORT-ID;BEZEICHNUNG;STRASSE;PLZ;ORT;KANTON;LONGITUDE;LATITUDE";
-    protected static String HEADER_LINE_LADESTATIONEN = "LADESTATION-ID;STANDORT-ID";
+    protected static String HEADER_LINE_LADESTATIONEN = "LADESTATION-ID;STANDORT-ID;BEZEICHNUNG";
     private static int NUMBER_OF_COLUMNS_STANDORT = HEADER_LINE_STANDORT.split(DELIMITER).length;
-    private static int NUMBER_OF_COLUMNS_LADESTATION = HEADER_LINE_LADESTATIONEN.split(DELIMITER).length;
+    private static int MIN_NUMBER_OF_COLUMNS_LADESTATION = HEADER_LINE_LADESTATIONEN.split(DELIMITER).length - 1;
+    private static int MAX_NUMBER_OF_COLUMNS_LADESTATION = HEADER_LINE_LADESTATIONEN.split(DELIMITER).length;
 
     StammdatenAccessor load()  {
 
@@ -171,7 +172,8 @@ public class StammdatenLoader {
             statistics.setHasHeader();
             return false;
         }
-        if (line.split(DELIMITER).length != NUMBER_OF_COLUMNS_LADESTATION) {
+        final int count = line.split(DELIMITER).length;
+        if (count < MIN_NUMBER_OF_COLUMNS_LADESTATION || count > MAX_NUMBER_OF_COLUMNS_LADESTATION) {
             statistics.bad();
             return false;
         }
@@ -196,7 +198,11 @@ public class StammdatenLoader {
         final String[] split = line.split(DELIMITER);
         final String ladestationId = remQT(split[0]);
         final String standortId = remQT(split[1]);
-        return StammdatenLadestation.of(ladestationId, standortId);
+        String bezeichnung = "";
+        if (split.length == MAX_NUMBER_OF_COLUMNS_LADESTATION) {
+            bezeichnung = remQT(split[2]);
+        }
+        return StammdatenLadestation.of(ladestationId, standortId, bezeichnung);
     }
 
     // Remove Quotation marks

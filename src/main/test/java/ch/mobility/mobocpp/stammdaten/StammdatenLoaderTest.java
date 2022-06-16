@@ -35,10 +35,10 @@ public class StammdatenLoaderTest {
         standorteList.add(getStandortLine(qm, "StandortId2", "bezeichnung2", "strasse2",  "plz2", "ort2", "K2", "lon2", "lat2"));
 
         final List<String> ladestationenList = getEmptyLadestationenList(false);
-        ladestationenList.add(getLadestationLine(qm, "LadestationID1", "StandortId1"));
+        ladestationenList.add(getLadestationLine(qm, "LadestationID1", "StandortId1", "pp1"));
         ladestationenList.add("Invalid1");
         ladestationenList.add("");
-        ladestationenList.add(getLadestationLine(qm, "LadestationID2", "StandortId2"));
+        ladestationenList.add(getLadestationLine(qm, "LadestationID2", "StandortId2", "pp2"));
         StammdatenLoader testee = createTestee(standorteList, ladestationenList);
 
         { // Ohne Header
@@ -67,10 +67,10 @@ public class StammdatenLoaderTest {
         standorteList.add(getStandortLine(qm, "StandortId2", "bezeichnung2", "strasse2",  "plz2", "ort2", "K2", "lon2", "lat2"));
 
         final List<String> ladestationenList = getEmptyLadestationenList(false);
-        ladestationenList.add(getLadestationLine(qm, "LadestationID1", "StandortId1"));
+        ladestationenList.add(getLadestationLine(qm, "LadestationID1", "StandortId1", "pp1"));
         ladestationenList.add("Invalid1");
         ladestationenList.add("");
-        ladestationenList.add(getLadestationLine(qm, "LadestationID2", "StandortId2"));
+        ladestationenList.add(getLadestationLine(qm, "LadestationID2", "StandortId2", "pp2"));
         StammdatenLoader testee = createTestee(standorteList, ladestationenList);
 
         { // Ohne Header
@@ -96,13 +96,13 @@ public class StammdatenLoaderTest {
         standorteList.add(getStandortLine(qm, "name3", "bezeichnung2", "strasse2",  "plz2", "ort2", "K2", "lon2", "lat2"));
 
         final List<String> ladestationenList = getEmptyLadestationenList(false);
-        ladestationenList.add(getLadestationLine(qm, "DUPLICATE1", "keep"));
-        ladestationenList.add(getLadestationLine(qm, "ID2", "name2"));
-        ladestationenList.add(getLadestationLine(qm, "DUPLICATE1", "removed"));
-        ladestationenList.add(getLadestationLine(qm, "DUPLICATE2", "keep"));
-        ladestationenList.add(getLadestationLine(qm, "DUPLICATE1", "removed"));
-        ladestationenList.add(getLadestationLine(qm, "DUPLICATE2", "removed"));
-        ladestationenList.add(getLadestationLine(qm, "ID3", "name3"));
+        ladestationenList.add(getLadestationLine(qm, "DUPLICATE1", "keep", "pp1"));
+        ladestationenList.add(getLadestationLine(qm, "ID2", "name2", "pp2"));
+        ladestationenList.add(getLadestationLine(qm, "DUPLICATE1", "removed", "pp3"));
+        ladestationenList.add(getLadestationLine(qm, "DUPLICATE2", "keep", "pp4"));
+        ladestationenList.add(getLadestationLine(qm, "DUPLICATE1", "removed", null));
+        ladestationenList.add(getLadestationLine(qm, "DUPLICATE2", "removed", "pp6"));
+        ladestationenList.add(getLadestationLine(qm, "ID3", "name3", "pp7"));
         StammdatenLoader testee = createTestee(standorteList, ladestationenList);
 
         StammdatenAccessor accessor = testee.load();
@@ -134,9 +134,9 @@ public class StammdatenLoaderTest {
         standorteList.add(getStandortLine(qm, "name3", "bezeichnung2", "strasse2",  "plz2", "ort2", "K2", "lon2", "lat2"));
 
         final List<String> ladestationenList = getEmptyLadestationenList(false);
-        ladestationenList.add(getLadestationLine(qm, "ID1", "name1"));
-        ladestationenList.add(getLadestationLine(qm, "ID2", "name2"));
-        ladestationenList.add(getLadestationLine(qm, "ID3", "name3"));
+        ladestationenList.add(getLadestationLine(qm, "ID1", "name1", "pp1"));
+        ladestationenList.add(getLadestationLine(qm, "ID2", "name2", "pp2"));
+        ladestationenList.add(getLadestationLine(qm, "ID3", "name3", "pp3"));
         StammdatenLoader testee = createTestee(standorteList, ladestationenList);
         testee.load();
     }
@@ -187,9 +187,10 @@ public class StammdatenLoaderTest {
                qm(withQM, lon) + StammdatenLoader.DELIMITER;
     }
 
-    private static String getLadestationLine(boolean withQM, String ladestationId, String standortId) {
+    private static String getLadestationLine(boolean withQM, String ladestationId, String standortId, String bezeichnung) {
         return qm(withQM, ladestationId) + StammdatenLoader.DELIMITER +
-                qm(withQM, standortId) + StammdatenLoader.DELIMITER;
+                qm(withQM, standortId) + StammdatenLoader.DELIMITER +
+                qm(withQM, bezeichnung) + StammdatenLoader.DELIMITER;
     }
 
     private static String qm(boolean withQM, String value) {

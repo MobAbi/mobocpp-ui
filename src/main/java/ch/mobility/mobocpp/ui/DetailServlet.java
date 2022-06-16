@@ -222,7 +222,7 @@ public class DetailServlet extends HttpServlet {
                 return stammdatenStandort.getStandortId() + " - " +//
                         stammdatenStandort.getStrasse() + " - " + //
                         stammdatenStandort.getPlz() + " " + stammdatenStandort.getOrt() + " - " +//
-                        stammdatenStandort.getBezeichnung();
+                        stammdatenStandort.getBezeichnung() + stammdatenLadestation.getBezeichnungWithSeparator();
             }
         }
         return UNBEKANNT;
