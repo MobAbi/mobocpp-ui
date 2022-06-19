@@ -21,7 +21,11 @@ import java.util.stream.Collectors;
 @WebServlet("/list")
 public class ListServlet extends HttpServlet {
 
-    private static boolean doAddFake = false;
+    private static long SEC_TAG = 86400;
+    private static long SEC_STUNDE = 3600;
+    private static long SEC_MINUTE = 60;
+
+    private static boolean doAddFake = true;
     private boolean isFakeAdded = false;
 
     private static String UNBEKANNT = "Unbekannt";
@@ -32,6 +36,10 @@ public class ListServlet extends HttpServlet {
     final static String BLUE = "#00f";         // O1
     final static String GREEN_DARK = "#06b251";   // O2
     final static String GREEN_LIGHT = "#78f1ad";  // O3
+
+    // Text-Colors:
+    final static String BLACK = "#000000";
+    final static String WHITE = "#FFFFFF";
 
     private static Map<String, Instant> lastContact = new HashMap<>();
     static {
@@ -148,7 +156,7 @@ public class ListServlet extends HttpServlet {
 //    Gelb: Problem, Hinweis zum Problem anzeigbar sofern vorhanden
 //    Rot: Fehler, Hinweis zum Fehler anzeigbar sofern vorhanden
 
-    private String calcColor(StammdatenLadestation stammdaten, CSStatusConnected statusConnected) {
+    private String calcBackgroundColor(StammdatenLadestation stammdaten, CSStatusConnected statusConnected) {
 
         if (stammdaten == null) throw new IllegalArgumentException("Stammdaten darf nicht leer sein");
 
@@ -187,6 +195,23 @@ public class ListServlet extends HttpServlet {
             }
         }
         return result;
+    }
+
+    private String calcTextColor(String colorBackground) {
+        if (RED.equals(colorBackground)) {
+            return WHITE;
+        } else if (YELLOW_LIGHT.equals(colorBackground)) {
+            return BLACK;
+        } else if (YELLOW_DARK.equals(colorBackground)) {
+            return WHITE;
+        } else if (BLUE.equals(colorBackground)) {
+            return WHITE;
+        } else if (GREEN_DARK.equals(colorBackground)) {
+            return WHITE;
+        } else if (GREEN_LIGHT.equals(colorBackground)) {
+            return BLACK;
+        }
+        return BLACK;
     }
 
     private boolean matchConnectorStatus(ConnectorStatusEnum wanted, String value) {
@@ -326,8 +351,8 @@ public class ListServlet extends HttpServlet {
     }
 
     // https://stackoverflow.com/questions/14607695/flashing-table-row
-    private String getTDWithColor(String value, String color) {
-        return "    <td style=\"background:" + color + "; color:" + color + ";\">" + value + "</td>";
+    private String getTDWithColor(String value, String colorBackground, String colorText) {
+        return "    <td style=\"background:" + colorBackground + "; color:" + colorText + ";\">" + value + "</td>";
     }
 
     private String getTDWithLink(String ref, String value) {
@@ -365,8 +390,9 @@ public class ListServlet extends HttpServlet {
 
     private String getLetztenKontakt(Instant lastContact) {
         if (lastContact != null) {
-            final long sec = getSekundenSeitLetztemKontakt(lastContact);
-            return DateTimeHelper.humanReadable(lastContact) + " (" + sec + "s)";
+//            final long sec = getSekundenSeitLetztemKontakt(lastContact);
+//            return DateTimeHelper.humanReadable(lastContact) + " (" + sec + "s)";
+            return DateTimeHelper.humanReadable(lastContact);
         }
         return UNBEKANNT;
     }
@@ -411,8 +437,11 @@ public class ListServlet extends HttpServlet {
             final String status = getStatusCS(statusConnected);
             calcStatus(statusMap, status);
             final Instant lastContactValue = lastContact.get(stammdatenLadestation.getLadestationId());
+            final long secSinceLastContact = getSekundenSeitLetztemKontakt(lastContactValue);
+            final String secSinceLastContactText = getKontaktstatusText(secSinceLastContact);
             final String id = stammdatenLadestation.getLadestationId();
-            final String color = calcColor(stammdatenLadestation, statusConnected);
+            final String colorBackground = calcBackgroundColor(stammdatenLadestation, statusConnected);
+            final String colorText = calcTextColor(colorBackground);
             final String detailLink = "\"detail?id=" + id + "\"";
             final String googleMapsLink = "\"https://maps.google.com/?q=" + stammdatenStandort.getLatitude() + "," + stammdatenStandort.getLongitude() + "\" target=\"_blank\"";
             tableBody += "   <tr>\n";
@@ -428,9 +457,9 @@ public class ListServlet extends HttpServlet {
             tableBody += getTD(stammdatenStandort.getBezeichnung() + stammdatenLadestation.getBezeichnungWithSeparator());
             tableBody += getTD(status);
 //            tableBody += getTDWithColor2(getStatusCS(statusConnected), color);
-            tableBody += getTDWithColor(color, color);
             tableBody += getTD(getStatusLadung(statusConnected));
             tableBody += getTD(getLetztenKontakt(lastContactValue));
+            tableBody += getTDWithColor(secSinceLastContactText, colorBackground, colorText);
             tableBody += "   </tr>\n";
         }
         tableBody += " </tbody>\n" +
@@ -468,13 +497,32 @@ public class ListServlet extends HttpServlet {
 //                        "     <th onclick=\"sortTable(7)\">KT</th>\n" +
                         "     <th onclick=\"sortTable(7)\">Bezeichnung</th>\n" +
                         "     <th onclick=\"sortTable(8)\">Status</th>\n" +
-                        "     <th onclick=\"sortTable(9)\">-</th>\n" +
-                        "     <th onclick=\"sortTable(10)\">Laden</th>\n" +
-                        "     <th onclick=\"sortTable(11)\">Letzter Kontakt</th>\n" +
+                        "     <th onclick=\"sortTable(9)\">Laden</th>\n" +
+                        "     <th onclick=\"sortTable(10)\">Letzter Kontakt</th>\n" +
+                        "     <th onclick=\"sortTable(11)\">Kontaktstatus</th>\n" +
                         "  </tr>\n" +
                         " </thead>\n" +
                         " <tbody>\n";
 
         return tableHead + tableBody;
+    }
+
+    private String getKontaktstatusText(long secSinceLastContact) {
+        if (secSinceLastContact < 0L) {
+            return UNBEKANNT;
+        }
+
+        if (secSinceLastContact > SEC_TAG ) {
+            return secSinceLastContact/SEC_TAG + " Tage";
+        }
+
+        if (secSinceLastContact > SEC_STUNDE) {
+            return secSinceLastContact/SEC_STUNDE + " Stunden";
+        }
+
+        if (secSinceLastContact > SEC_MINUTE) {
+            return secSinceLastContact/SEC_MINUTE + " Min";
+        }
+        return secSinceLastContact + " Sek";
     }
 }
