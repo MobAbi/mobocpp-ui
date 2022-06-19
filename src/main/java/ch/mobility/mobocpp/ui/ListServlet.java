@@ -513,16 +513,16 @@ public class ListServlet extends HttpServlet {
         }
 
         if (secSinceLastContact > SEC_TAG ) {
-            return secSinceLastContact/SEC_TAG + " Tage";
+            return secSinceLastContact/SEC_TAG + " d";
         }
 
         if (secSinceLastContact > SEC_STUNDE) {
-            return secSinceLastContact/SEC_STUNDE + " Stunden";
+            return secSinceLastContact/SEC_STUNDE + " h";
         }
 
         if (secSinceLastContact > SEC_MINUTE) {
-            return secSinceLastContact/SEC_MINUTE + " Min";
+            return secSinceLastContact/SEC_MINUTE + " min";
         }
-        return secSinceLastContact + " Sek";
+        return secSinceLastContact + " s";
     }
 }
