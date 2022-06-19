@@ -56,7 +56,9 @@ public class ListServlet extends HttpServlet {
             StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN,  "002", ""));
             StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler,  "003", ""));
             StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen,  "004", ""));
-            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden,  "005", ""));
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenA,  "005", ""));
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenB,  "005", ""));
+            StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenC,  "005", ""));
             StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden,  "006", ""));
         }
         final String standortIds = StammdatenAccessor.get().getStandorte().stream().map(e -> e.getStandortId()).collect(Collectors.joining(","));
@@ -156,62 +158,98 @@ public class ListServlet extends HttpServlet {
 //    Gelb: Problem, Hinweis zum Problem anzeigbar sofern vorhanden
 //    Rot: Fehler, Hinweis zum Fehler anzeigbar sofern vorhanden
 
-    private String calcBackgroundColor(StammdatenLadestation stammdaten, CSStatusConnected statusConnected) {
+    private interface ColorResult {
+        String getBackgroundColor();
+        String getTextColor();
+        String getDescription();
+    }
+
+    private ColorResult calcBackgroundColor(StammdatenLadestation stammdaten, CSStatusConnected statusConnected) {
 
         if (stammdaten == null) throw new IllegalArgumentException("Stammdaten darf nicht leer sein");
 
-        final String result;
+        final String backgroundColor;
+        final String textColor;
+        final String resultDescription;
         final Instant lastContactValue = lastContact.get(stammdaten.getLadestationId());
         if (lastContactValue == null) {
-            result = RED;
+            backgroundColor = RED;
+            textColor = WHITE;
+            resultDescription = "Letzter Kontaktzeitpunkt unbekannt";
         } else {
             boolean lastContactOverLimit = LastContactHelper.isLastContactOverLimit(LAST_CONTACT_OK_IN_SECONDS, lastContactValue);
             if (lastContactOverLimit) {
-                result = RED;
+                backgroundColor = RED;
+                textColor = WHITE;
+                resultDescription = "Letzter Kontakt l&auml;nger als " + LAST_CONTACT_OK_IN_SECONDS + " Sekunden her";
             } else {
                 if (statusConnected == null) {
-                    result = YELLOW_LIGHT;
+                    backgroundColor = YELLOW_LIGHT;
+                    textColor = BLACK;
+                    resultDescription = "Unbekannter Verbindungsstatus zur Ladestation";
                 } else {
                     if (ConnectorStatusEnum.Faulted.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
-                        result = YELLOW_DARK;
+                        backgroundColor = YELLOW_DARK;
+                        textColor = WHITE;
+                        resultDescription = "Ladestation meldet Problem, siehe Details";
                     } else if (ConnectorStatusEnum.Reserved.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
-                        result = YELLOW_DARK;
+                        backgroundColor = YELLOW_DARK;
+                        textColor = WHITE;
+                        resultDescription = "Ladestation ist reserviert";
                     } else if (ConnectorStatusEnum.Unavailable.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
-                        result = YELLOW_DARK;
+                        backgroundColor = YELLOW_DARK;
+                        textColor = WHITE;
+                        resultDescription = "Ladestation meldet keine Verf&uuml;gbarkeit, siehe Details";
                     } else if (matchConnectorStatus(ConnectorStatusEnum.Available, statusConnected.getCPConnectorStatus())) {
-                        result = BLUE;
+                        backgroundColor = BLUE;
+                        textColor = WHITE;
+                        resultDescription = "Ladestation frei, kein EV verbunden";
                     } else if (ConnectorStatusEnum.Occupied.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
                         if (matchChargingState(ChargingStateEnum.Idle, statusConnected.getCPChargingState())) {
-                            result = BLUE;
+                            backgroundColor = BLUE;
+                            textColor = WHITE;
+                            resultDescription = "Ladestation belegt, kein EV verbunden";
+                        } else if (matchChargingState(ChargingStateEnum.EVConnected, statusConnected.getCPChargingState())) {
+                            backgroundColor = GREEN_LIGHT;
+                            textColor = BLACK;
+                            resultDescription = "Ladestation belegt, EV verbunden, kein Ladevorgang aktiv";
                         } else if (matchChargingState(ChargingStateEnum.Charging, statusConnected.getCPChargingState())) {
-                            result = GREEN_DARK;
+                            backgroundColor = GREEN_DARK;
+                            textColor = WHITE;
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv";
+                        } else if (matchChargingState(ChargingStateEnum.SuspendedEV, statusConnected.getCPChargingState())) {
+                            backgroundColor = GREEN_LIGHT;
+                            textColor = BLACK;
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EV";
+                        } else if (matchChargingState(ChargingStateEnum.SuspendedEVSE, statusConnected.getCPChargingState())) {
+                            backgroundColor = GREEN_LIGHT;
+                            textColor = BLACK;
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EVSE";
                         } else {
-                            result = GREEN_LIGHT;
+                            throw new IllegalStateException("ChargingStateEnum: stammdaten=" + stammdaten + ", statusConnected=" + statusConnected);
                         }
                     } else {
-                        throw new IllegalStateException("stammdaten=" + stammdaten + ", statusConnected=" + statusConnected);
+                        throw new IllegalStateException("ConnectorStatusEnum: stammdaten=" + stammdaten + ", statusConnected=" + statusConnected);
                     }
                 }
             }
         }
-        return result;
-    }
+        return new ColorResult() {
+            @Override
+            public String getBackgroundColor() {
+                return backgroundColor;
+            }
 
-    private String calcTextColor(String colorBackground) {
-        if (RED.equals(colorBackground)) {
-            return WHITE;
-        } else if (YELLOW_LIGHT.equals(colorBackground)) {
-            return BLACK;
-        } else if (YELLOW_DARK.equals(colorBackground)) {
-            return WHITE;
-        } else if (BLUE.equals(colorBackground)) {
-            return WHITE;
-        } else if (GREEN_DARK.equals(colorBackground)) {
-            return WHITE;
-        } else if (GREEN_LIGHT.equals(colorBackground)) {
-            return BLACK;
-        }
-        return BLACK;
+            @Override
+            public String getTextColor() {
+                return textColor;
+            }
+
+            @Override
+            public String getDescription() {
+                return resultDescription;
+            }
+        };
     }
 
     private boolean matchConnectorStatus(ConnectorStatusEnum wanted, String value) {
@@ -351,12 +389,12 @@ public class ListServlet extends HttpServlet {
     }
 
     // https://stackoverflow.com/questions/14607695/flashing-table-row
-    private String getTDWithColor(String value, String colorBackground, String colorText) {
-        return "    <td style=\"background:" + colorBackground + "; color:" + colorText + ";\">" + value + "</td>";
+    private String getTDWithColor(String value, ColorResult colorResult) {
+        return "    <td title=\"" + colorResult.getDescription() + "\" style=\"background:" + colorResult.getBackgroundColor() + "; color:" + colorResult.getTextColor() + ";\">" + value + "</td>";
     }
 
-    private String getTDWithLink(String ref, String value) {
-        return "    <td><a href=" + ref + ">" + value + "</a></td>";
+    private String getTDWithLink(String ref, String value, String title) {
+        return "    <td title=\"" + title + "\"><a href=" + ref + ">" + value + "</a></td>";
 //        return "    <td><a href=\"detail?id=" + ref + "\">" + value + "</a></td>";
     }
 
@@ -440,16 +478,15 @@ public class ListServlet extends HttpServlet {
             final long secSinceLastContact = getSekundenSeitLetztemKontakt(lastContactValue);
             final String secSinceLastContactText = getKontaktstatusText(secSinceLastContact);
             final String id = stammdatenLadestation.getLadestationId();
-            final String colorBackground = calcBackgroundColor(stammdatenLadestation, statusConnected);
-            final String colorText = calcTextColor(colorBackground);
+            final ColorResult colorResult = calcBackgroundColor(stammdatenLadestation, statusConnected);
             final String detailLink = "\"detail?id=" + id + "\"";
             final String googleMapsLink = "\"https://maps.google.com/?q=" + stammdatenStandort.getLatitude() + "," + stammdatenStandort.getLongitude() + "\" target=\"_blank\"";
             tableBody += "   <tr>\n";
-            tableBody += getTDWithLink(detailLink, id);
+            tableBody += getTDWithLink(detailLink, id, "Details zu Ladestation '" + id + "' anzeigen");
             tableBody += getTD(getVendor(statusConnected));
             tableBody += getTD(getModel(statusConnected));
 //            tableBody += getTD(stammdatenStandort.getStandortId());
-            tableBody += getTDWithLink(googleMapsLink, stammdatenStandort.getStandortId());
+            tableBody += getTDWithLink(googleMapsLink, stammdatenStandort.getStandortId(), "&Ouml;ffne Standort in neuem Google-Maps Fenster");
             tableBody += getTD(stammdatenStandort.getStrasse());
             tableBody += getTD(stammdatenStandort.getPlz());
             tableBody += getTD(stammdatenStandort.getOrt());
@@ -459,7 +496,7 @@ public class ListServlet extends HttpServlet {
 //            tableBody += getTDWithColor2(getStatusCS(statusConnected), color);
             tableBody += getTD(getStatusLadung(statusConnected));
             tableBody += getTD(getLetztenKontakt(lastContactValue));
-            tableBody += getTDWithColor(secSinceLastContactText, colorBackground, colorText);
+            tableBody += getTDWithColor(secSinceLastContactText, colorResult);
             tableBody += "   </tr>\n";
         }
         tableBody += " </tbody>\n" +
@@ -499,7 +536,7 @@ public class ListServlet extends HttpServlet {
                         "     <th onclick=\"sortTable(8)\">Status</th>\n" +
                         "     <th onclick=\"sortTable(9)\">Laden</th>\n" +
                         "     <th onclick=\"sortTable(10)\">Letzter Kontakt</th>\n" +
-                        "     <th onclick=\"sortTable(11)\">Kontaktstatus</th>\n" +
+                        "     <th onclick=\"sortTable(11)\">Ampel</th>\n" +
                         "  </tr>\n" +
                         " </thead>\n" +
                         " <tbody>\n";

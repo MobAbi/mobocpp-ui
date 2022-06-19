@@ -46,7 +46,9 @@ public class MapServlet extends HttpServlet {
         StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN,  "002", ""));
         StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler,  "003", ""));
         StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen,  "004", ""));
-        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden,  "005", ""));
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenA,  "005", ""));
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenB,  "005", ""));
+        StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenC,  "005", ""));
         StammdatenAccessor.get().getLadestationen().add(StammdatenLadestation.of(FakeCSStatusConnected.KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden,  "006", ""));
         final String standortIds = StammdatenAccessor.get().getStandorte().stream().map(e -> e.getStandortId()).collect(Collectors.joining(","));
         System.out.println(StammdatenAccessor.get().getStandorte().size()  + " Standorte aus der Stammdatendatei gelesen: " + standortIds);

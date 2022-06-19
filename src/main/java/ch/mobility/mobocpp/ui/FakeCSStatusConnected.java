@@ -15,7 +15,9 @@ public class FakeCSStatusConnected {
     static String KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN = "CS-F1"; // F1
     static String KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler = "CS-W2"; // W2
     static String KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen = "CS-O1"; // O1
-    static String KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden = "CS-O2"; // O2
+    static String KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenA = "CS-O2a"; // O2a
+    static String KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenB = "CS-O2b"; // O2b
+    static String KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenC = "CS-O2c"; // O2c
     static String KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden = "CS-O3"; // O3
 
     public static CSStatusConnectedResponse addFakeCS(Map<String, Instant> lastContact) {
@@ -29,14 +31,18 @@ public class FakeCSStatusConnected {
         lastContact.put(KeyLadestationBekanntKeineVerbindungLetzerKontaktGroesserN, f1);
         lastContact.put(KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler, Instant.now());
         lastContact.put(KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen, Instant.now());
-        lastContact.put(KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden, Instant.now());
+        lastContact.put(KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenA, Instant.now());
+        lastContact.put(KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenB, Instant.now());
+        lastContact.put(KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenC, Instant.now());
         lastContact.put(KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden, Instant.now());
 
         List<CSStatusConnected> result = new ArrayList<>();
         result.add(createFakeCSConnected(lastContact, KeyLadestationOhneStammdaten, ConnectorStatusEnum.Available, ChargingStateEnum.Idle));
         result.add(createFakeCSConnected(lastContact, KeyLadestationBekanntVerbindungBestehtLadestationMeldetFehler, ConnectorStatusEnum.Faulted, null));
         result.add(createFakeCSConnected(lastContact, KeyLadestationBekanntVerbindungBestehtKeinFahrzeugAngeschlossen, ConnectorStatusEnum.Available, ChargingStateEnum.Idle));
-        result.add(createFakeCSConnected(lastContact, KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLaden, ConnectorStatusEnum.Occupied, ChargingStateEnum.EVConnected));
+        result.add(createFakeCSConnected(lastContact, KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenA, ConnectorStatusEnum.Occupied, ChargingStateEnum.EVConnected));
+        result.add(createFakeCSConnected(lastContact, KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenB, ConnectorStatusEnum.Occupied, ChargingStateEnum.SuspendedEV));
+        result.add(createFakeCSConnected(lastContact, KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenNichtAmLadenC, ConnectorStatusEnum.Occupied, ChargingStateEnum.SuspendedEVSE));
         result.add(createFakeCSConnected(lastContact, KeyLadestationBekanntVerbindungBestehtFahrzeugAngeschlossenAmLaden, ConnectorStatusEnum.Occupied, ChargingStateEnum.Charging));
 
         final CSResponse csResponseFake = CSResponse.newBuilder()
