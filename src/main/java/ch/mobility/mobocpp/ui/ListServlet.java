@@ -25,7 +25,7 @@ public class ListServlet extends HttpServlet {
     private static long SEC_STUNDE = 3600;
     private static long SEC_MINUTE = 60;
 
-    private static boolean doAddFake = true;
+    private static boolean doAddFake = false;
     private boolean isFakeAdded = false;
 
     private static String UNBEKANNT = "Unbekannt";
