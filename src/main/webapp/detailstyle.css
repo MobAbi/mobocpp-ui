@@ -162,6 +162,21 @@
     /*padding: 8px;*/
     /*margin: 5px;*/
     width: 10%;
+    /*background-color: lightpink;*/
+}
+
+.dropdownbutton {
+    border-radius: 15px;
+    padding: 8px;
+    margin: 5px;
+    /*margin-top: 5px;*/
+    /*margin-bottom: 0px;*/
+    /*margin-left: 5px;*/
+    /*margin-right: 5px;*/
+    width: 95%;
+    height: 80%;
+    display: inline-block;
+    background-color: lightcyan;
 }
 
 .dropdown-content {

@@ -11,18 +11,6 @@ body {
     background-color: lightcyan;
 }
 
-.dropdownbutton {
-    border-radius: 15px;
-    padding: 8px;
-    margin-top: 5px;
-    margin-bottom: 0px;
-    margin-left: 5px;
-    margin-right: 5px;
-    width: 95%;
-    display: inline-block;
-    background-color: lightcyan;
-}
-
 table {
     border-collapse: collapse;
     /*border-collapse:separate;*/
