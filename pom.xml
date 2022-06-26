@@ -119,7 +119,7 @@
       <groupId>com.github.MobAbi</groupId>
 <!--      <groupId>ch.mobility</groupId>-->
       <artifactId>mobocpp-events</artifactId>
-      <version>0.0.8</version>
+      <version>0.0.9</version>
     </dependency>
 
     <dependency>
