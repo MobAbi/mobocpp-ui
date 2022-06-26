@@ -71,13 +71,7 @@ public class ListServlet extends HttpServlet {
 
     @Override
     public void init() {
-        final List<CSRecentlyConnectedResponse> recentlyConnected = getAvroProsumer().getRecentlyConnected(Integer.valueOf(1));
-        for (CSRecentlyConnectedResponse csRecentlyConnectedResponse : recentlyConnected) {
-            for (CSRecentlyConnected csRecentlyConnected : csRecentlyConnectedResponse.getCSRecentlyList()) {
-                lastContact.put(csRecentlyConnected.getId(), DateTimeHelper.parse(csRecentlyConnected.getLastContact()));
-                System.out.println("lastContact hinzugefuegt: " + csRecentlyConnected.getId() + " => " + DateTimeHelper.parse(csRecentlyConnected.getLastContact()));
-            }
-        }
+        fetchLastContacts("init");
     }
 
     @Override
@@ -94,6 +88,16 @@ public class ListServlet extends HttpServlet {
         return null;
     }
 
+    private void fetchLastContacts(String source) {
+        final List<CSRecentlyConnectedResponse> recentlyConnected = getAvroProsumer().getRecentlyConnected(Integer.valueOf(1));
+        for (CSRecentlyConnectedResponse csRecentlyConnectedResponse : recentlyConnected) {
+            for (CSRecentlyConnected csRecentlyConnected : csRecentlyConnectedResponse.getCSRecentlyList()) {
+                lastContact.put(csRecentlyConnected.getId(), DateTimeHelper.parse(csRecentlyConnected.getLastContact()));
+                System.out.println(source + ": LastContact hinzugefuegt: " + csRecentlyConnected.getId() + " => " + DateTimeHelper.parse(csRecentlyConnected.getLastContact()));
+            }
+        }
+    }
+
     private CSStatusConnected getStatusConnected(List<CSStatusConnectedResponse> receiveConnected, String id) {
         for (CSStatusConnectedResponse csStatusConnectedResponse : receiveConnected) {
             for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
@@ -108,6 +112,10 @@ public class ListServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+
+        if (lastContact.isEmpty()) {
+            fetchLastContacts("doGet");
+        }
 
         final List<CSStatusConnectedResponse> receiveConnected = getAvroProsumer().getStatusConnected();
         for (CSStatusConnectedResponse csStatusConnectedResponse : receiveConnected) {
