@@ -4,10 +4,7 @@ import ch.mobility.mobocpp.kafka.AvroProsumer;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
 import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
-import ch.mobility.ocpp2mob.CSStatusConnected;
-import ch.mobility.ocpp2mob.CSStatusConnectedResponse;
-import ch.mobility.ocpp2mob.ChargingStateEnum;
-import ch.mobility.ocpp2mob.ConnectorStatusEnum;
+import ch.mobility.ocpp2mob.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -74,6 +71,12 @@ public class ListServlet extends HttpServlet {
 
     @Override
     public void init() {
+        final List<CSRecentlyConnectedResponse> recentlyConnected = getAvroProsumer().getRecentlyConnected(Integer.valueOf(1));
+        for (CSRecentlyConnectedResponse csRecentlyConnectedResponse : recentlyConnected) {
+            for (CSRecentlyConnected csRecentlyConnected : csRecentlyConnectedResponse.getCSRecentlyList()) {
+                lastContact.put(csRecentlyConnected.getId(), DateTimeHelper.parse(csRecentlyConnected.getLastContact()));
+            }
+        }
     }
 
     @Override

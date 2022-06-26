@@ -62,6 +62,14 @@ public class AvroProsumer implements Runnable {
         }
     }
 
+    public List<CSRecentlyConnectedResponse> getRecentlyConnected(Integer daysOfHistoryData) {
+        synchronized (this) {
+            final String messageId = UUID.randomUUID().toString();
+            getAvroProducer().requestRecentlyConnected(messageId, daysOfHistoryData);
+            return getAvroConsumer().receive(CSRecentlyConnectedResponse.class, messageId, this.wait, this.maxMobOCPPBackends);
+        }
+    }
+
     public List<CSStatusConnectedResponse> getStatusConnected() {
         return getStatusConnected(this.wait, this.maxMobOCPPBackends);
     }

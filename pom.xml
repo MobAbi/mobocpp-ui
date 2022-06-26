@@ -119,14 +119,14 @@
       <groupId>com.github.MobAbi</groupId>
 <!--      <groupId>ch.mobility</groupId>-->
       <artifactId>mobocpp-events</artifactId>
-      <version>0.0.7</version>
+      <version>0.0.8</version>
     </dependency>
 
     <dependency>
 <!--      <groupId>com.github.MobAbi</groupId>-->
       <groupId>ch.mobility</groupId>
       <artifactId>mobocpp-prosumer</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
     </dependency>
 
     <dependency>
