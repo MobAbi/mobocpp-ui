@@ -75,6 +75,7 @@ public class ListServlet extends HttpServlet {
         for (CSRecentlyConnectedResponse csRecentlyConnectedResponse : recentlyConnected) {
             for (CSRecentlyConnected csRecentlyConnected : csRecentlyConnectedResponse.getCSRecentlyList()) {
                 lastContact.put(csRecentlyConnected.getId(), DateTimeHelper.parse(csRecentlyConnected.getLastContact()));
+                System.out.println("lastContact hinzugefuegt: " + csRecentlyConnected.getId() + " => " + DateTimeHelper.parse(csRecentlyConnected.getLastContact()));
             }
         }
     }
