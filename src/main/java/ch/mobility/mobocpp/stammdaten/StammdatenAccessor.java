@@ -1,10 +1,15 @@
 package ch.mobility.mobocpp.stammdaten;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class StammdatenAccessor {
 
     private static final String UNBEKANNT = "Unbekannt";
+    private static final String EGOLF_VIN = "WVWZZZAUZLW908093";
+    private static final String EGOLF_KENNZEICHEN = "NW-19561";
+    private static final String EGOLF_HERSTELLER = "VW";
+    private static final String EGOLF_MODELL = "e-Golf 300";
 
     private static StammdatenAccessor INSTANCE = null;
 
@@ -23,6 +28,8 @@ public class StammdatenAccessor {
     private final List<Integer> ladestationenUngueltigeZeilen;
     private final List<String> ladestationenDuplicateIds;
 
+    private final List<StammdatenFahrzeug> fahrzeugeList;
+
     StammdatenAccessor(
             List<StammdatenStandort> standorteList,
             List<Integer> standorteUngueltigeZeilen,
@@ -36,6 +43,8 @@ public class StammdatenAccessor {
         this.ladestationenList = ladestationenList;
         this.ladestationenUngueltigeZeilen = ladestationenUngueltigeZeilen;
         this.ladestationenDuplicateIds = ladestationenDuplicateIds;
+        this.fahrzeugeList = new ArrayList<>();
+        this.fahrzeugeList.add(StammdatenFahrzeug.of(EGOLF_VIN, EGOLF_KENNZEICHEN, EGOLF_HERSTELLER, EGOLF_MODELL));
     }
 
     public List<StammdatenStandort> getStandorte() {

@@ -62,6 +62,7 @@ public class AvroProsumer implements Runnable {
         }
     }
 
+    // TODO Je CS die Antworten gruppieren und wenn mehr als ein Treffer, dann nur denjenigen verwenden mit den jüngsten Heartbeat-TS
     public List<CSRecentlyConnectedResponse> getRecentlyConnected(Integer daysOfHistoryData) {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
