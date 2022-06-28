@@ -2,17 +2,11 @@ package ch.mobility.mobocpp.ui;
 
 import ch.mobility.mobocpp.kafka.AvroProsumer;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.servlet.ServletContainer;
 import sun.misc.Signal;
 
 import java.net.URL;
 
-// https://www.torsten-horn.de/techdocs/jee-rest.htm#JaxRsMitJetty
-// https://stackoverflow.com/questions/10048004/integrating-jetty-with-jax-rs-jersey
-// https://chowdera.com/2022/03/202203231654267525.html
 public class ServerMain {
 
     public static void main(String[] args) throws Exception {
@@ -38,19 +32,6 @@ public class ServerMain {
             webAppContext.setAttribute(
                     "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
                     ".*/target/classes/|.*\\.jar");
-        }
-
-        { // Rest-Server
-            ServletContextHandler ctx
-                    = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-
-            ctx.setContextPath("/");
-            server.setHandler(ctx);
-
-            ServletHolder serHol = ctx.addServlet(ServletContainer.class, "/rs/*");
-            serHol.setInitOrder(1);
-            serHol.setInitParameter("jersey.config.server.provider.packages",
-                    "ch.mobility.mobocpp.rs");
         }
 
         // Start the server! 🚀

@@ -89,7 +89,7 @@ public class ListServlet extends HttpServlet {
     }
 
     private void fetchLastContacts(String source) {
-        final List<CSRecentlyConnectedResponse> recentlyConnected = getAvroProsumer().getRecentlyConnected(Integer.valueOf(1));
+        final List<CSRecentlyConnectedResponse> recentlyConnected = getAvroProsumer().getRecentlyConnected(Integer.valueOf(7));
         for (CSRecentlyConnectedResponse csRecentlyConnectedResponse : recentlyConnected) {
             for (CSRecentlyConnected csRecentlyConnected : csRecentlyConnectedResponse.getCSRecentlyList()) {
                 lastContact.put(csRecentlyConnected.getId(), DateTimeHelper.parse(csRecentlyConnected.getLastContact()));
