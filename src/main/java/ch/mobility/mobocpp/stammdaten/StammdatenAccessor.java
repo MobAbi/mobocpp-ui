@@ -5,7 +5,7 @@ import java.util.List;
 
 public class StammdatenAccessor {
 
-    private static final String UNBEKANNT = "Unbekannt";
+    public static final String UNBEKANNT = "Unbekannt";
     private static final String EGOLF_VIN = "WVWZZZAUZLW908093";
     private static final String EGOLF_KENNZEICHEN = "NW-19561";
     private static final String EGOLF_HERSTELLER = "VW";

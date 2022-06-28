@@ -9,15 +9,15 @@ public class GPSDistance {
 
     /**
      * Calculate the distance in Meters.
-     * @param lt1 Latitude of 1st location
-     * @param ln1 Longitude of 1st location
-     * @param lt2 Latitude of 2nd location
-     * @param ln2 Longitude of 2nd location
+     * @param latitude1 Latitude of 1st location
+     * @param longitude1 Longitude of 1st location
+     * @param latitude2 Latitude of 2nd location
+     * @param longitude2 Longitude of 2nd location
      * @return
      */
-    public static double distance(double lt1, double ln1, double lt2, double ln2) {
-        double x = lt1 * d2r;
-        double y = lt2 * d2r;
-        return Math.acos( Math.sin(x) * Math.sin(y) + Math.cos(x) * Math.cos(y) * Math.cos(d2r * (ln1 - ln2))) * d2km;
+    public static double distance(double latitude1, double longitude1, double latitude2, double longitude2) {
+        double x = latitude1 * d2r;
+        double y = latitude2 * d2r;
+        return Math.acos( Math.sin(x) * Math.sin(y) + Math.cos(x) * Math.cos(y) * Math.cos(d2r * (longitude1 - longitude2))) * d2km;
     }
 }

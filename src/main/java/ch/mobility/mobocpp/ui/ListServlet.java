@@ -4,6 +4,7 @@ import ch.mobility.mobocpp.kafka.AvroProsumer;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
 import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
+import ch.mobility.mobocpp.util.EVAccessor;
 import ch.mobility.ocpp2mob.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -176,14 +177,14 @@ public class ListServlet extends HttpServlet {
         String getDescription();
     }
 
-    private ColorResult calcBackgroundColor(StammdatenLadestation stammdaten, CSStatusConnected statusConnected) {
+    private ColorResult calcBackgroundColor(StammdatenLadestation stammdatenLadestation, CSStatusConnected statusConnected) {
 
-        if (stammdaten == null) throw new IllegalArgumentException("Stammdaten darf nicht leer sein");
+        if (stammdatenLadestation == null) throw new IllegalArgumentException("StammdatenLadestation darf nicht leer sein");
 
         final String backgroundColor;
         final String textColor;
         final String resultDescription;
-        final Instant lastContactValue = lastContact.get(stammdaten.getLadestationId());
+        final Instant lastContactValue = lastContact.get(stammdatenLadestation.getLadestationId());
         if (lastContactValue == null) {
             backgroundColor = RED;
             textColor = WHITE;
@@ -224,24 +225,28 @@ public class ListServlet extends HttpServlet {
                         } else if (matchChargingState(ChargingStateEnum.EVConnected, statusConnected.getCPChargingState())) {
                             backgroundColor = GREEN_LIGHT;
                             textColor = BLACK;
-                            resultDescription = "Ladestation belegt, EV verbunden, kein Ladevorgang aktiv";
+                            resultDescription = "Ladestation belegt, EV verbunden, kein Ladevorgang aktiv" +
+                                    fetchConnectedEV(stammdatenLadestation);
                         } else if (matchChargingState(ChargingStateEnum.Charging, statusConnected.getCPChargingState())) {
                             backgroundColor = GREEN_DARK;
                             textColor = WHITE;
-                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv";
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv" +
+                                    fetchConnectedEV(stammdatenLadestation);
                         } else if (matchChargingState(ChargingStateEnum.SuspendedEV, statusConnected.getCPChargingState())) {
                             backgroundColor = GREEN_LIGHT;
                             textColor = BLACK;
-                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EV";
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EV" +
+                                    fetchConnectedEV(stammdatenLadestation);
                         } else if (matchChargingState(ChargingStateEnum.SuspendedEVSE, statusConnected.getCPChargingState())) {
                             backgroundColor = GREEN_LIGHT;
                             textColor = BLACK;
-                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EVSE";
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EVSE" +
+                                    fetchConnectedEV(stammdatenLadestation);
                         } else {
-                            throw new IllegalStateException("ChargingStateEnum: stammdaten=" + stammdaten + ", statusConnected=" + statusConnected);
+                            throw new IllegalStateException("ChargingStateEnum: stammdatenLadestation=" + stammdatenLadestation + ", statusConnected=" + statusConnected);
                         }
                     } else {
-                        throw new IllegalStateException("ConnectorStatusEnum: stammdaten=" + stammdaten + ", statusConnected=" + statusConnected);
+                        throw new IllegalStateException("ConnectorStatusEnum: stammdatenLadestation=" + stammdatenLadestation + ", statusConnected=" + statusConnected);
                     }
                 }
             }
@@ -262,6 +267,23 @@ public class ListServlet extends HttpServlet {
                 return resultDescription;
             }
         };
+    }
+
+    private String fetchConnectedEV(StammdatenLadestation stammdatenLadestation) {
+        final StammdatenStandort stammdatenStandort =
+                StammdatenAccessor.get().getStammdatenStandortForLadestation(stammdatenLadestation);
+        final EVAccessor evAccessor = new EVAccessor();
+        if (stammdatenStandort.hasGeolocation()) {
+            final List<String> chargingEVsByGeolocation = evAccessor.getChargingEVsNearGeolocation(
+                    Double.valueOf(stammdatenStandort.getLongitude()).doubleValue(),
+                    Double.valueOf(stammdatenStandort.getLatitude()).doubleValue(),
+                    50.0,
+                    180L);
+            if (chargingEVsByGeolocation.size() == 1) {
+                return ", " + chargingEVsByGeolocation.get(0);
+            }
+        }
+        return "";
     }
 
     private boolean matchConnectorStatus(ConnectorStatusEnum wanted, String value) {

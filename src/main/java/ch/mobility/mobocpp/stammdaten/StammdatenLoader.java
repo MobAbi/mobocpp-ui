@@ -189,9 +189,9 @@ public class StammdatenLoader {
         final String plz = remQT(split[3]);
         final String ort = remQT(split[4]);
         final String kanton = remQT(split[5]);
-        final String lat = remQT(split[6]);
-        final String lon = remQT(split[7]);
-        return StammdatenStandort.of(standortId, bezeichnung, strasse, plz, ort, kanton, lat, lon);
+        final String longitude = remQT(split[6]);
+        final String latitude = remQT(split[7]);
+        return StammdatenStandort.of(standortId, bezeichnung, strasse, plz, ort, kanton, longitude, latitude);
     }
 
     private StammdatenLadestation line2StammdatenLadestation(String line) {
