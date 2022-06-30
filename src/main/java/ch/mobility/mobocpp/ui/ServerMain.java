@@ -1,6 +1,7 @@
 package ch.mobility.mobocpp.ui;
 
 import ch.mobility.mobocpp.kafka.AvroProsumer;
+import ch.mobility.mobocpp.util.LadestatusStandortCalculator;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 import sun.misc.Signal;
@@ -15,7 +16,7 @@ public class ServerMain {
         if (args.length == 1 && (!"".equals(args[0]))) {
             hostIP = args[0];
         }
-        AvroProsumer.init(hostIP);
+        AvroProsumer.init(LadestatusStandortCalculator.get(), hostIP);
 
         Server server = new Server(8088);
         { // HTML Server
