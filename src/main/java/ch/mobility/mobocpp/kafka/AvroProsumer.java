@@ -182,42 +182,48 @@ public class AvroProsumer implements Runnable {
         for (CSStatusConnectedResponse csStatusConnectedResponse : statusConnected) {
             if (csStatusConnectedResponse.getResponseInfo().getError() == null) {
                 for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
-                    ConnectorStatusEnum connectorStatus = ConnectorStatusEnum.valueOf(csStatusConnected.getCPConnectorStatus());
-                    final ChargingStateEnum chargingState = ChargingStateEnum.valueOf(csStatusConnected.getCPChargingState());
-                    if (isChargingTransactionActive(connectorStatus, chargingState)) {
-                        result.add(new LadestationMitLaufendenLadevorgang() {
-                            @Override
-                            public StammdatenLadestation getStammdatenLadestation() {
-                                return StammdatenAccessor.get().getStammdatenLadestationById(csStatusConnected.getId());
-                            }
+                    try {
+                        final ConnectorStatusEnum connectorStatus = ConnectorStatusEnum.valueOf(csStatusConnected.getCPConnectorStatus());
+                        final ChargingStateEnum chargingState = ChargingStateEnum.valueOf(csStatusConnected.getCPChargingState());
+                        if (isChargingTransactionActive(connectorStatus, chargingState)) {
+                            result.add(new LadestationMitLaufendenLadevorgang() {
+                                @Override
+                                public StammdatenLadestation getStammdatenLadestation() {
+                                    return StammdatenAccessor.get().getStammdatenLadestationById(csStatusConnected.getId());
+                                }
 
-                            @Override
-                            public Instant getZeitpunktLadevorgangStart() {
-                                return Instant.now(); // TODO Ermitteln !?
-                            }
+                                @Override
+                                public Instant getZeitpunktLadevorgangStart() {
+                                    return Instant.now(); // TODO Ermitteln !?
+                                }
 
-                            @Override
-                            public Optional<Instant> getZeitpunktLadekabelEingesteckt() {
-                                return Optional.empty();
-                            }
+                                @Override
+                                public Optional<Instant> getZeitpunktLadekabelEingesteckt() {
+                                    return Optional.empty();
+                                }
 
-                            @Override
-                            public Optional<Integer> getLadestromAmpereL1() {
-                                return Optional.empty();
-                            }
+                                @Override
+                                public Optional<Integer> getLadestromAmpereL1() {
+                                    return Optional.empty();
+                                }
 
-                            @Override
-                            public Optional<Integer> getLadestromAmpereL2() {
-                                return Optional.empty();
-                            }
+                                @Override
+                                public Optional<Integer> getLadestromAmpereL2() {
+                                    return Optional.empty();
+                                }
 
-                            @Override
-                            public Optional<Integer> getLadestromAmpereL3() {
-                                return Optional.empty();
-                            }
-                        });
+                                @Override
+                                public Optional<Integer> getLadestromAmpereL3() {
+                                    return Optional.empty();
+                                }
+                            });
+                        }
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
                     }
                 }
+            } else {
+                System.err.println("Ignoriere Eintrag da Fehler vorhanden: " + csStatusConnectedResponse);
             }
         }
         return result;
