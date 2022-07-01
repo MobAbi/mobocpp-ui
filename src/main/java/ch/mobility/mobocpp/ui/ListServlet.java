@@ -4,7 +4,8 @@ import ch.mobility.mobocpp.kafka.AvroProsumer;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
 import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
-import ch.mobility.mobocpp.util.EVAccessor;
+import ch.mobility.mobocpp.util.EvMitLaufendenLadevorgang;
+import ch.mobility.mobocpp.util.LadestatusStandortCalculator;
 import ch.mobility.ocpp2mob.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,14 +27,14 @@ public class ListServlet extends HttpServlet {
     private static boolean doAddFake = false;
     private boolean isFakeAdded = false;
 
-    private static String UNBEKANNT = "Unbekannt";
+    private static String UNBEKANNT = "-";
     private static int LAST_CONTACT_OK_IN_SECONDS = 5 * 60;
-    final static String RED = "#f03";          // F1
-    final static String YELLOW_LIGHT = "#fcfc66"; // W1
-    final static String YELLOW_DARK = "#d3c70b";  // W2
-    final static String BLUE = "#00f";         // O1
-    final static String GREEN_DARK = "#06b251";   // O2
-    final static String GREEN_LIGHT = "#78f1ad";  // O3
+    final static String RED = "#f03";
+    final static String YELLOW_LIGHT = "#fcfc66";
+    final static String YELLOW_DARK = "#d3c70b";
+    final static String GREEN = "#00CC00";
+    final static String BLUE_DARK = "#0000CC";
+    final static String BLUE_LIGHT = "#3399FF";
 
     // Text-Colors:
     final static String BLACK = "#000000";
@@ -165,9 +166,9 @@ public class ListServlet extends HttpServlet {
 //    final static String GREEN_DARK = "#0f0";   // O2
 //    final static String GREEN_LIGHT = "#0f9";  // O3
 
-//    Blau: Online / Verfügbar, keine Auto angeschlossen
-//    Dunkel-Grün: Online / Verfügbar, Auto angeschlossen, nicht am Laden
-//    Dunkel-Grün blinkend: Online / Verfügbar, Auto angeschlossen und am Laden
+//    Grün: Online / Verfügbar, keine Auto angeschlossen
+//    Dunkel-Blau: Online / Verfügbar, Auto angeschlossen, nicht am Laden
+//    Hell-Blau: Online / Verfügbar, Auto angeschlossen und am Laden
 //    Gelb: Problem, Hinweis zum Problem anzeigbar sofern vorhanden
 //    Rot: Fehler, Hinweis zum Fehler anzeigbar sofern vorhanden
 
@@ -201,47 +202,45 @@ public class ListServlet extends HttpServlet {
                     textColor = BLACK;
                     resultDescription = "Unbekannter Verbindungsstatus zur Ladestation";
                 } else {
-                    if (ConnectorStatusEnum.Faulted.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                    final ConnectorStatusEnum connectorStatus = statusConnected.getCSStatusConnectorList().get(0).getConnectorStatus();
+                    if (ConnectorStatusEnum.Faulted.equals(connectorStatus)) {
                         backgroundColor = YELLOW_DARK;
                         textColor = WHITE;
                         resultDescription = "Ladestation meldet Problem, siehe Details";
-                    } else if (ConnectorStatusEnum.Reserved.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                    } else if (ConnectorStatusEnum.Reserved.equals(connectorStatus)) {
                         backgroundColor = YELLOW_DARK;
                         textColor = WHITE;
                         resultDescription = "Ladestation ist reserviert";
-                    } else if (ConnectorStatusEnum.Unavailable.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                    } else if (ConnectorStatusEnum.Unavailable.equals(connectorStatus)) {
                         backgroundColor = YELLOW_DARK;
                         textColor = WHITE;
                         resultDescription = "Ladestation meldet keine Verf&uuml;gbarkeit, siehe Details";
-                    } else if (matchConnectorStatus(ConnectorStatusEnum.Available, statusConnected.getCPConnectorStatus())) {
-                        backgroundColor = BLUE;
+                    } else if (ConnectorStatusEnum.Available.equals(connectorStatus)) {
+                        backgroundColor = GREEN;
                         textColor = WHITE;
                         resultDescription = "Ladestation frei, kein EV verbunden";
-                    } else if (ConnectorStatusEnum.Occupied.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
-                        if (matchChargingState(ChargingStateEnum.Idle, statusConnected.getCPChargingState())) {
-                            backgroundColor = BLUE;
+                    } else if (ConnectorStatusEnum.Occupied.equals(connectorStatus)) {
+                        final ChargingStateEnum chargingState = statusConnected.getCSStatusConnectorList().get(0).getChargingState();
+                        if (ChargingStateEnum.Idle.equals(chargingState)) {
+                            backgroundColor = GREEN;
                             textColor = WHITE;
                             resultDescription = "Ladestation belegt, kein EV verbunden";
-                        } else if (matchChargingState(ChargingStateEnum.EVConnected, statusConnected.getCPChargingState())) {
-                            backgroundColor = GREEN_LIGHT;
+                        } else if (ChargingStateEnum.EVConnected.equals(chargingState)) {
+                            backgroundColor = BLUE_LIGHT;
                             textColor = BLACK;
-                            resultDescription = "Ladestation belegt, EV verbunden, kein Ladevorgang aktiv" +
-                                    fetchConnectedEV(stammdatenLadestation);
-                        } else if (matchChargingState(ChargingStateEnum.Charging, statusConnected.getCPChargingState())) {
-                            backgroundColor = GREEN_DARK;
+                            resultDescription = "Ladestation belegt, EV verbunden, kein Ladevorgang aktiv";
+                        } else if (ChargingStateEnum.Charging.equals(chargingState)) {
+                            backgroundColor = BLUE_DARK;
                             textColor = WHITE;
-                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv" +
-                                    fetchConnectedEV(stammdatenLadestation);
-                        } else if (matchChargingState(ChargingStateEnum.SuspendedEV, statusConnected.getCPChargingState())) {
-                            backgroundColor = GREEN_LIGHT;
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv";
+                        } else if (ChargingStateEnum.SuspendedEV.equals(chargingState)) {
+                            backgroundColor = BLUE_LIGHT;
                             textColor = BLACK;
-                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EV" +
-                                    fetchConnectedEV(stammdatenLadestation);
-                        } else if (matchChargingState(ChargingStateEnum.SuspendedEVSE, statusConnected.getCPChargingState())) {
-                            backgroundColor = GREEN_LIGHT;
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EV";
+                        } else if (ChargingStateEnum.SuspendedEVSE.equals(chargingState)) {
+                            backgroundColor = BLUE_LIGHT;
                             textColor = BLACK;
-                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EVSE" +
-                                    fetchConnectedEV(stammdatenLadestation);
+                            resultDescription = "Ladestation belegt, EV verbunden, Ladevorgang aktiv, angehalten durch EVSE";
                         } else {
                             throw new IllegalStateException("ChargingStateEnum: stammdatenLadestation=" + stammdatenLadestation + ", statusConnected=" + statusConnected);
                         }
@@ -267,31 +266,6 @@ public class ListServlet extends HttpServlet {
                 return resultDescription;
             }
         };
-    }
-
-    private String fetchConnectedEV(StammdatenLadestation stammdatenLadestation) {
-        final StammdatenStandort stammdatenStandort =
-                StammdatenAccessor.get().getStammdatenStandortForLadestation(stammdatenLadestation);
-        final EVAccessor evAccessor = new EVAccessor();
-        if (stammdatenStandort.hasGeolocation()) {
-            final List<String> chargingEVsByGeolocation = evAccessor.getChargingEVsNearGeolocation(
-                    Double.valueOf(stammdatenStandort.getLongitude()).doubleValue(),
-                    Double.valueOf(stammdatenStandort.getLatitude()).doubleValue(),
-                    50.0,
-                    180L);
-            if (chargingEVsByGeolocation.size() == 1) {
-                return ", " + chargingEVsByGeolocation.get(0);
-            }
-        }
-        return "";
-    }
-
-    private boolean matchConnectorStatus(ConnectorStatusEnum wanted, String value) {
-        return wanted.name().equalsIgnoreCase(value);
-    }
-
-    private boolean matchChargingState(ChargingStateEnum wanted, String value) {
-        return wanted.name().equalsIgnoreCase(value);
     }
 
     private String getHead() {
@@ -447,17 +421,30 @@ public class ListServlet extends HttpServlet {
     }
 
     private String getStatusCS(CSStatusConnected statusConnected) {
-        if (statusConnected != null && statusConnected.getCPConnectorStatus() != null) {
-            return statusConnected.getCPConnectorStatus().toString();
+        if (statusConnected != null && !statusConnected.getCSStatusConnectorList().isEmpty()) {
+            return statusConnected.getCSStatusConnectorList().get(0).getConnectorStatus().name();
         }
         return UNBEKANNT;
     }
 
     private String getStatusLadung(CSStatusConnected statusConnected) {
-        if (statusConnected != null && statusConnected.getCPChargingState() != null) {
-            return statusConnected.getCPChargingState().toString();
+        if (statusConnected != null && !statusConnected.getCSStatusConnectorList().isEmpty()) {
+            if (statusConnected.getCSStatusConnectorList().get(0).getChargingState() != null) {
+                return statusConnected.getCSStatusConnectorList().get(0).getChargingState().name();
+            }
         }
         return UNBEKANNT;
+    }
+
+    private String getEV(String ladestationId) {
+        final Optional<EvMitLaufendenLadevorgang> evMitLaufendenLadevorgangForLadestation =
+                LadestatusStandortCalculator.get().getEvMitLaufendenLadevorgangForLadestation(ladestationId);
+        String result = UNBEKANNT;
+        if (evMitLaufendenLadevorgangForLadestation.isPresent()) {
+            result = evMitLaufendenLadevorgangForLadestation.get().getStammdatenFahrzeug().getKennzeichen() +
+                    " (" + evMitLaufendenLadevorgangForLadestation.get().getSoC() + "%)";
+        }
+        return result;
     }
 
     private String getLetztenKontakt(Instant lastContact) {
@@ -493,7 +480,7 @@ public class ListServlet extends HttpServlet {
         if (count == null) {
             count = Integer.valueOf(0);
         }
-        count = count + 1;
+        count = Integer.valueOf(count.intValue() + 1);
         statusMap.put(status, count);
     }
 
@@ -517,7 +504,7 @@ public class ListServlet extends HttpServlet {
             final String googleMapsLink = "\"https://maps.google.com/?q=" + stammdatenStandort.getLatitude() + "," + stammdatenStandort.getLongitude() + "\" target=\"_blank\"";
             tableBody += "   <tr>\n";
             tableBody += getTDWithLink(detailLink, id, "Details zu Ladestation '" + id + "' anzeigen");
-            tableBody += getTD(getVendor(statusConnected));
+//            tableBody += getTD(getVendor(statusConnected));
             tableBody += getTD(getModel(statusConnected));
 //            tableBody += getTD(stammdatenStandort.getStandortId());
             tableBody += getTDWithLink(googleMapsLink, stammdatenStandort.getStandortId(), "&Ouml;ffne Standort in neuem Google-Maps Fenster");
@@ -529,6 +516,7 @@ public class ListServlet extends HttpServlet {
             tableBody += getTD(status);
 //            tableBody += getTDWithColor2(getStatusCS(statusConnected), color);
             tableBody += getTD(getStatusLadung(statusConnected));
+            tableBody += getTD(getEV(id));
             tableBody += getTD(getLetztenKontakt(lastContactValue));
             tableBody += getTDWithColor(secSinceLastContactText, colorResult);
             tableBody += "   </tr>\n";
@@ -559,16 +547,17 @@ public class ListServlet extends HttpServlet {
                         " <thead>\n" +
                         "   <tr>\n" +
                         "     <th onclick=\"sortTable(0)\">Kennung</th>\n" +
-                        "     <th onclick=\"sortTable(1)\">Hersteller</th>\n" +
-                        "     <th onclick=\"sortTable(2)\">Modell</th>\n" +
-                        "     <th onclick=\"sortTable(3)\">Standort</th>\n" +
-                        "     <th onclick=\"sortTable(4)\">Strasse</th>\n" +
-                        "     <th onclick=\"sortTable(5)\">PLZ</th>\n" +
-                        "     <th onclick=\"sortTable(6)\">Ort</th>\n" +
+//                        "     <th onclick=\"sortTable(1)\">Hersteller</th>\n" +
+                        "     <th onclick=\"sortTable(1)\">Typ</th>\n" +
+                        "     <th onclick=\"sortTable(2)\">Standort</th>\n" +
+                        "     <th onclick=\"sortTable(3)\">Strasse</th>\n" +
+                        "     <th onclick=\"sortTable(4)\">PLZ</th>\n" +
+                        "     <th onclick=\"sortTable(5)\">Ort</th>\n" +
 //                        "     <th onclick=\"sortTable(7)\">KT</th>\n" +
-                        "     <th onclick=\"sortTable(7)\">Bezeichnung</th>\n" +
-                        "     <th onclick=\"sortTable(8)\">Status</th>\n" +
-                        "     <th onclick=\"sortTable(9)\">Laden</th>\n" +
+                        "     <th onclick=\"sortTable(6)\">Bezeichnung</th>\n" +
+                        "     <th onclick=\"sortTable(7)\">Status</th>\n" +
+                        "     <th onclick=\"sortTable(8)\">Laden</th>\n" +
+                        "     <th onclick=\"sortTable(9)\">EV</th>\n" +
                         "     <th onclick=\"sortTable(10)\">Letzter Kontakt</th>\n" +
                         "     <th onclick=\"sortTable(11)\">Ampel</th>\n" +
                         "  </tr>\n" +

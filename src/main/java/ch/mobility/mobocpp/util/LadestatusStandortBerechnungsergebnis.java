@@ -4,6 +4,7 @@ import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public interface LadestatusStandortBerechnungsergebnis {
 
@@ -26,4 +27,11 @@ public interface LadestatusStandortBerechnungsergebnis {
      * @return List mit EV's in der Nähe Standort mit laufenden Ladevorgang
      */
     List<EvMitLaufendenLadevorgang> getEvMitLaufendenLadevorgang();
+
+    /**
+     *
+     * @param ladestationId
+     * @return
+     */
+    Optional<EvMitLaufendenLadevorgang> getEvMitLaufendenLadevorgangForLadestation(String ladestationId);
 }

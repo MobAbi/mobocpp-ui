@@ -62,10 +62,17 @@ public class FakeCSStatusConnected {
             ConnectorStatusEnum connectorStatus,
             ChargingStateEnum chargingState) {
         Instant lastContactValue = lastContact.get(id);
+
+        List<CSStatusConnectedConnector> list = new ArrayList<>();
+        CSStatusConnectedConnector.Builder builder = CSStatusConnectedConnector.newBuilder();
+        builder.setConnectorId(1)
+                .setConnectorStatus(connectorStatus)
+                .setChargingState(chargingState);
+        list.add(builder.build());
+
         return CSStatusConnected.newBuilder()
                 .setId(id)
-                .setCPConnectorStatus(connectorStatus == null ? "Unknown" : connectorStatus.name())
-                .setCPChargingState(chargingState == null ? "Unknown" : chargingState.name())
+                .setCSStatusConnectorList(list)
                 .setLastContact(DateTimeHelper.format(lastContactValue))
                 .setModel("FakeModel")
                 .setVendor("FakeVendor")

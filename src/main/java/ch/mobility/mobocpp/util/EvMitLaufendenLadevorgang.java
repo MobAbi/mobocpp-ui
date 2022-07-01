@@ -24,7 +24,7 @@ public interface EvMitLaufendenLadevorgang {
     /**
      * @return Anzahl Meter die das EV from gegebenen Standort entfernt ist
      */
-    int getDistanzZumGegebenenStandort();
+    double getDistanzZumGegebenenStandort();
 
     /**
      * @return Falls verfügbar: Der Zeitpunkt als das Ladekabel verbunden wurde.

@@ -5,6 +5,7 @@ import ch.mobility.kafka.AvroProducer;
 import ch.mobility.mob2ocpp.TriggerKeywordsV1XEnum;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
 import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
+import ch.mobility.mobocpp.ui.DateTimeHelper;
 import ch.mobility.mobocpp.util.LadestationMitLaufendenLadevorgang;
 import ch.mobility.mobocpp.util.LadestationMitLaufendenLadevorgangListener;
 import ch.mobility.ocpp2mob.*;
@@ -183,8 +184,9 @@ public class AvroProsumer implements Runnable {
             if (csStatusConnectedResponse.getResponseInfo().getError() == null) {
                 for (CSStatusConnected csStatusConnected : csStatusConnectedResponse.getCSStatusList()) {
                     try {
-                        final ConnectorStatusEnum connectorStatus = ConnectorStatusEnum.valueOf(csStatusConnected.getCPConnectorStatus());
-                        final ChargingStateEnum chargingState = ChargingStateEnum.valueOf(csStatusConnected.getCPChargingState());
+                        CSStatusConnectedConnector csStatusConnectedConnector = csStatusConnected.getCSStatusConnectorList().get(0);
+                        final ConnectorStatusEnum connectorStatus = csStatusConnectedConnector.getConnectorStatus();
+                        final ChargingStateEnum chargingState = csStatusConnectedConnector.getChargingState();
                         if (isChargingTransactionActive(connectorStatus, chargingState)) {
                             result.add(new LadestationMitLaufendenLadevorgang() {
                                 @Override
@@ -194,7 +196,7 @@ public class AvroProsumer implements Runnable {
 
                                 @Override
                                 public Instant getZeitpunktLadevorgangStart() {
-                                    return Instant.now(); // TODO Ermitteln !?
+                                    return DateTimeHelper.parse(csStatusConnectedConnector.getStartActiveTransaction());
                                 }
 
                                 @Override

@@ -268,8 +268,8 @@ public class MapServlet extends HttpServlet {
 
     private String getStatusString(CSStatusConnected statusConnected) {
         if (statusConnected != null) {
-            return "Status: " + statusConnected.getCPConnectorStatus().toString() +
-                    " / " + statusConnected.getCPChargingState().toString();
+            return "Status: " + statusConnected.getCSStatusConnectorList().get(0).getConnectorStatus().toString() +
+                    " / " + statusConnected.getCSStatusConnectorList().get(0).getChargingState().toString();
         }
         return "Status: Nicht Verbunden"; // A1
     }
@@ -303,16 +303,18 @@ public class MapServlet extends HttpServlet {
                 if (statusConnected == null) {
                     result = YELLOW_LIGHT;
                 } else {
-                    if (ConnectorStatusEnum.Faulted.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                    ConnectorStatusEnum connectorStatus = statusConnected.getCSStatusConnectorList().get(0).getConnectorStatus();
+                    if (ConnectorStatusEnum.Faulted.equals(connectorStatus)) {
                         result = YELLOW_DARK;
-                    } else if (ConnectorStatusEnum.Reserved.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                    } else if (ConnectorStatusEnum.Reserved.equals(connectorStatus)) {
                         result = YELLOW_DARK;
-                    } else if (ConnectorStatusEnum.Unavailable.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
+                    } else if (ConnectorStatusEnum.Unavailable.equals(connectorStatus)) {
                         result = YELLOW_DARK;
-                    } else if (matchConnectorStatus(ConnectorStatusEnum.Available, statusConnected.getCPConnectorStatus())) {
+                    } else if (ConnectorStatusEnum.Available.equals(connectorStatus)) {
                         result = BLUE;
-                    } else if (ConnectorStatusEnum.Occupied.name().equalsIgnoreCase(statusConnected.getCPConnectorStatus())) {
-                        if (matchChargingState(ChargingStateEnum.Charging, statusConnected.getCPChargingState())) {
+                    } else if (ConnectorStatusEnum.Occupied.equals(connectorStatus)) {
+                        ChargingStateEnum chargingState = statusConnected.getCSStatusConnectorList().get(0).getChargingState();
+                        if (ChargingStateEnum.Charging.equals(chargingState)) {
                             result = GREEN_DARK;
                         } else {
                             result = GREEN_LIGHT;
@@ -326,13 +328,13 @@ public class MapServlet extends HttpServlet {
         return result;
     }
 
-    private boolean matchConnectorStatus(ConnectorStatusEnum wanted, String value) {
-        return wanted.name().equalsIgnoreCase(value);
-    }
-
-    private boolean matchChargingState(ChargingStateEnum wanted, String value) {
-        return wanted.name().equalsIgnoreCase(value);
-    }
+//    private boolean matchConnectorStatus(ConnectorStatusEnum wanted, String value) {
+//        return wanted.name().equalsIgnoreCase(value);
+//    }
+//
+//    private boolean matchChargingState(ChargingStateEnum wanted, String value) {
+//        return wanted.name().equalsIgnoreCase(value);
+//    }
 
     private String getJScriptMap() {
         return "    var map = L.map('map').setView([46.80,8.40], 8);\n" +

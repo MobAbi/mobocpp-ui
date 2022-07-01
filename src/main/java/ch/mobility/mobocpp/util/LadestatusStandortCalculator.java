@@ -1,13 +1,11 @@
 package ch.mobility.mobocpp.util;
 
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
+import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LadestatusStandortCalculator implements LadestationMitLaufendenLadevorgangListener {
 
@@ -24,9 +22,8 @@ public class LadestatusStandortCalculator implements LadestationMitLaufendenLade
 
     private static double evMaxMeterDistance2Standort = 50;
 
-//    private static final long SLEEP_INTERVALL = 30000L;
-//    private boolean run = true;
     private List<LadestatusStandortBerechnungsergebnis> berechnungsergebnis = new ArrayList<>();
+    private EVAccessor evAccessor = new EVAccessor();
 
     public void notify(List<LadestationMitLaufendenLadevorgang> ladestationenMitLaufendenLadevorgang) {
         final long start = System.currentTimeMillis();
@@ -45,26 +42,24 @@ public class LadestatusStandortCalculator implements LadestationMitLaufendenLade
         }
         final long calculationTimeMS = System.currentTimeMillis() - start;
         System.out.println("LadestatusStandortCalculator Dauer: " + calculationTimeMS + ", Anzahl: " + neuesBerechnungsergebnis.size());
+    }
 
-//        while (run) {
-//
-//            final List<LadestatusStandortBerechnungsergebnis> neuesBerechnungsergebnis = new ArrayList<>();
-//            for (StammdatenStandort stammdatenStandort : StammdatenAccessor.get().getStandorte()) {
-//                neuesBerechnungsergebnis.add(berechneFuerStandort(stammdatenStandort));
-//                if (!run) {
-//                    break;
-//                }
-//            }
-//            synchronized (berechnungsergebnis) {
-//                berechnungsergebnis.clear();
-//                berechnungsergebnis.addAll(neuesBerechnungsergebnis);
-//            }
-//            final long calculationTimeMS = System.currentTimeMillis() - start;
-//            System.out.println("LadestatusStandortCalculator Dauer: " + calculationTimeMS);
-//            try {
-//                Thread.sleep(SLEEP_INTERVALL);
-//            } catch (InterruptedException e) {}
-//        }
+    public Optional<EvMitLaufendenLadevorgang> getEvMitLaufendenLadevorgangForLadestation(String ladestationId) {
+        final StammdatenLadestation stammdatenLadestation = StammdatenAccessor.get().getStammdatenLadestationById(ladestationId);
+        final LadestatusStandortBerechnungsergebnis berechnungFuerStandort = getBerechnungFuerStandort(stammdatenLadestation.getStandortId());
+        if (berechnungFuerStandort != null) {
+            return berechnungFuerStandort.getEvMitLaufendenLadevorgangForLadestation(ladestationId);
+        }
+        return Optional.empty();
+    }
+
+    private LadestatusStandortBerechnungsergebnis getBerechnungFuerStandort(String standortId) {
+        for (LadestatusStandortBerechnungsergebnis ladestatusStandortBerechnungsergebnis : berechnungsergebnis) {
+            if (ladestatusStandortBerechnungsergebnis.getStammdatenStandort().getStandortId().equals(standortId)) {
+                return ladestatusStandortBerechnungsergebnis;
+            }
+        }
+        return null;
     }
 
     private Map<StammdatenStandort, List<LadestationMitLaufendenLadevorgang>> toMap(
@@ -89,8 +84,6 @@ public class LadestatusStandortCalculator implements LadestationMitLaufendenLade
     private LadestatusStandortBerechnungsergebnis berechneFuerStandort(
             StammdatenStandort stammdatenStandort,
             List<LadestationMitLaufendenLadevorgang> ladestationenMitLaufendenLadevorgang) {
-//        final List<LadestationMitLaufendenLadevorgang> ladestationenMitLaufendenLadevorgang =
-//                ermittleLadestationenMitLaufendenLadevorgang(stammdatenStandort);
         final List<EvMitLaufendenLadevorgang> evsMitLaufendenLadevorgang;
         if (ladestationenMitLaufendenLadevorgang.isEmpty()) {
             evsMitLaufendenLadevorgang = new ArrayList<>();
@@ -102,6 +95,7 @@ public class LadestatusStandortCalculator implements LadestationMitLaufendenLade
         System.out.println(evMaxMeterDistance2Standort + " Meter um Standort " + stammdatenStandort.getStandortId() +
                 ": CS mit Ladevorgang=" + ladestationenMitLaufendenLadevorgang.size() +
                 ", EV mit Ladevorgang=" + evsMitLaufendenLadevorgang.size());
+        final Map<String, EvMitLaufendenLadevorgang> ladestation2EvMap = new HashMap<>();
 
         if (ladestationenMitLaufendenLadevorgang.isEmpty()) {
 //            System.out.println("Am Standort " + stammdatenStandort.getStandortId() +
@@ -115,9 +109,20 @@ public class LadestatusStandortCalculator implements LadestationMitLaufendenLade
 
         } else if (ladestationenMitLaufendenLadevorgang.size() == 1 && evsMitLaufendenLadevorgang.size() == 1) {
 
-            System.out.println("Eine CS und EV am Laden => Exakter Match: EV " +
-                    evsMitLaufendenLadevorgang.get(0).getStammdatenFahrzeug().getVin() + " laedt an CS " +
-                    ladestationenMitLaufendenLadevorgang.get(0).getStammdatenLadestation().getLadestationId());
+            final Instant startTimeCS = ladestationenMitLaufendenLadevorgang.get(0).getZeitpunktLadevorgangStart();
+            final Instant startTimeEV = evsMitLaufendenLadevorgang.get(0).getZeitpunktLadevorgangStart();
+            if (startTimeEV.isAfter(startTimeCS)) {
+                System.out.println("Eine CS und EV am Laden => Exakter Match: EV " +
+                        evsMitLaufendenLadevorgang.get(0).getStammdatenFahrzeug().getVin() + " laedt an CS " +
+                        ladestationenMitLaufendenLadevorgang.get(0).getStammdatenLadestation().getLadestationId() +
+                        ", Distanz=" + evsMitLaufendenLadevorgang.get(0).getDistanzZumGegebenenStandort() + "m");
+
+                ladestation2EvMap.put(
+                        ladestationenMitLaufendenLadevorgang.get(0).getStammdatenLadestation().getLadestationId(),
+                        evsMitLaufendenLadevorgang.get(0));
+            } else {
+                System.out.println("Eine CS und EV am Laden, aber Ladevorgang-Startzeit vom CS " + startTimeCS + " ist nach dem vom EV " + startTimeEV);
+            }
 
         } else if (ladestationenMitLaufendenLadevorgang.size() == evsMitLaufendenLadevorgang.size()) {
 
@@ -149,23 +154,26 @@ public class LadestatusStandortCalculator implements LadestationMitLaufendenLade
             public List<EvMitLaufendenLadevorgang> getEvMitLaufendenLadevorgang() {
                 return evsMitLaufendenLadevorgang;
             }
+
+            @Override
+            public Optional<EvMitLaufendenLadevorgang> getEvMitLaufendenLadevorgangForLadestation(String ladestationId) {
+                return Optional.ofNullable(ladestation2EvMap.get(ladestationId));
+            }
         };
     }
-
-//    private List<LadestationMitLaufendenLadevorgang> ermittleLadestationenMitLaufendenLadevorgang(
-//            StammdatenStandort stammdatenStandort) {
-//        return new ArrayList<>();
-//    }
 
     private List<EvMitLaufendenLadevorgang> ermittleEVsMitLaufendenLadevorgang(
             StammdatenStandort stammdatenStandort,
             double evMaxMeterDistance2Standort) {
-        System.out.println("TODO: ermittleEVsMitLaufendenLadevorgang(Standort=" + stammdatenStandort.getStandortId() +
-                ", evMaxMeterDistance2Standort=" + evMaxMeterDistance2Standort + ")");
-        return new ArrayList<>();
-    }
 
-//    public void stop(String cause) {
-//        this.run = false;
-//    }
+        final List<EvMitLaufendenLadevorgang> result = new ArrayList<>();
+        if (stammdatenStandort.hasGeolocation()) {
+            final double longituade = Double.valueOf(stammdatenStandort.getLongitude()).doubleValue();
+            final double latitude = Double.valueOf(stammdatenStandort.getLatitude()).doubleValue();
+            result.addAll(evAccessor.getChargingEVsNearGeolocation(longituade, latitude, evMaxMeterDistance2Standort, 300));
+        }
+        System.out.println("ermittleEVsMitLaufendenLadevorgang(Standort=" + stammdatenStandort.getStandortId() +
+                ", evMaxMeterDistance2Standort=" + evMaxMeterDistance2Standort + "): " + result);
+        return result;
+    }
 }
