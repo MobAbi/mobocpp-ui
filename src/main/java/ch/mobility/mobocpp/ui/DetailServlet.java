@@ -1,9 +1,11 @@
 package ch.mobility.mobocpp.ui;
 
 import ch.mobility.mobocpp.kafka.AvroProsumer;
-import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenAccessor;
+import ch.mobility.mobocpp.stammdaten.StammdatenLadestation;
 import ch.mobility.mobocpp.stammdaten.StammdatenStandort;
+import ch.mobility.mobocpp.util.EvMitLaufendenLadevorgang;
+import ch.mobility.mobocpp.util.LadestatusStandortCalculator;
 import ch.mobility.ocpp2mob.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,6 +17,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @WebServlet("/detail")
 public class DetailServlet extends HttpServlet {
@@ -232,11 +235,19 @@ public class DetailServlet extends HttpServlet {
         String result = "";
         if (csStatusForIdResponse != null) {
             final CSStatusDetail status = csStatusForIdResponse.getStatus();
+            final Optional<EvMitLaufendenLadevorgang> evMitLaufendenLadevorgangForLadestation =
+                    LadestatusStandortCalculator.get().getEvMitLaufendenLadevorgangForLadestation(csStatusForIdResponse.getStatus().getId());
             for (CPStatus cpStatus : status.getCPStatusList()) {
                 if (cpStatus.getConnectorId() != 0) {
                     result += addLine("<b>Connector</b>", cpStatus.getConnectorId());
                     result += addLine("Connector Status", cpStatus.getConnectorStatus().name());
                     result += addLine("Charging State", (cpStatus.getChargingState() == null ? "" : cpStatus.getChargingState().name()));
+                    if (evMitLaufendenLadevorgangForLadestation.isPresent()) {
+                        result += addLine("<b>Electric Vehicle</b>", evMitLaufendenLadevorgangForLadestation.get().getStammdatenFahrzeug().getKennzeichen() +
+                                " (" + evMitLaufendenLadevorgangForLadestation.get().getSoC() + "%)");
+                    } else {
+                        result += addLine("<b>Electric Vehicle</b>", "-");
+                    }
                     result += addLine("Current charged energy", cpStatus.getCurrentChargedEnergy());
                     result += addLine("Current charging Ampere (L1 / L2 / L3)",
                             cpStatus.getCurrentChargingAmpereL1() +
@@ -335,7 +346,7 @@ public class DetailServlet extends HttpServlet {
                             String totalString = UNBEKANNT;
                             if (tentry.getStopValue() != null) {
                                 final BigDecimal startValue = BigDecimal.valueOf(tentry.getStartValue());
-                                final BigDecimal stopValue = BigDecimal.valueOf(tentry.getStopValue());
+                                final BigDecimal stopValue = BigDecimal.valueOf(tentry.getStopValue().longValue());
                                 final BigDecimal totalValue = stopValue.subtract(startValue).divide(BigDecimal.valueOf(1000L), 1, RoundingMode.HALF_UP);
                                 totalString = totalValue.toString();
                             }
