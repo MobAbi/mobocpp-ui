@@ -65,10 +65,10 @@ public class AvroProsumer implements Runnable {
         AvroConsumer.get().close();
     }
 
-    private List<CSStatusConnectedResponse> getStatusConnected(long wait, int maxMobOCPPBackends) {
+    private List<CSStatusConnectedResponse> getStatusConnected(long wait, int maxMobOCPPBackends, boolean fetchActiveTransactionData) {
         synchronized (this) {
             final String messageId = UUID.randomUUID().toString();
-            getAvroProducer().requestStatusConnected(messageId);
+            getAvroProducer().requestStatusConnected(messageId, fetchActiveTransactionData);
             return getAvroConsumer().receive(CSStatusConnectedResponse.class, messageId, wait, maxMobOCPPBackends);
         }
     }
@@ -83,7 +83,7 @@ public class AvroProsumer implements Runnable {
     }
 
     public List<CSStatusConnectedResponse> getStatusConnected() {
-        return getStatusConnected(this.wait, this.maxMobOCPPBackends);
+        return getStatusConnected(this.wait, this.maxMobOCPPBackends, false);
     }
 
     public List<CSStatusForIdResponse> getStatusForId(String csId, Integer connectorId, Integer daysOfHistoryData) {
@@ -158,7 +158,7 @@ public class AvroProsumer implements Runnable {
             if (isWaitUpdateIntervalUp(waitStart)) {
                 waitStart = System.currentTimeMillis();
                 final List<CSStatusConnectedResponse> statusConnected =
-                        getStatusConnected(MAX_WAIT_FOR_RESPONSE_MS, MAX_NUMBER_OF_OCPP_BACKENDS);
+                        getStatusConnected(MAX_WAIT_FOR_RESPONSE_MS, MAX_NUMBER_OF_OCPP_BACKENDS, true);
                 if (!statusConnected.isEmpty()) {
                     if (AvroProsumer.ladestationMitLaufendenLadevorgangListener != null) {
                         AvroProsumer.ladestationMitLaufendenLadevorgangListener.notify(
@@ -188,6 +188,13 @@ public class AvroProsumer implements Runnable {
                         final ConnectorStatusEnum connectorStatus = csStatusConnectedConnector.getConnectorStatus();
                         final ChargingStateEnum chargingState = csStatusConnectedConnector.getChargingState();
                         if (isChargingTransactionActive(connectorStatus, chargingState)) {
+                            final CSStatusConnectedConnectorActiveTransaction
+                                    activeTransaction = csStatusConnectedConnector.getActiveTransaction();
+                            if (activeTransaction == null) {
+                                throw new IllegalStateException(csStatusConnected.getId() + "/" + csStatusConnectedConnector.getConnectorId() +
+                                        ": ChargingTransaction ist aktiv aber CSStatusConnectedConnectorActiveTransaction ist <null>!!!");
+                            }
+
                             result.add(new LadestationMitLaufendenLadevorgang() {
                                 @Override
                                 public StammdatenLadestation getStammdatenLadestation() {
@@ -196,27 +203,27 @@ public class AvroProsumer implements Runnable {
 
                                 @Override
                                 public Instant getZeitpunktLadevorgangStart() {
-                                    return DateTimeHelper.parse(csStatusConnectedConnector.getStartActiveTransaction());
+                                    return DateTimeHelper.parse(activeTransaction.getStartActiveTransaction());
                                 }
 
                                 @Override
                                 public Optional<Instant> getZeitpunktLadekabelEingesteckt() {
-                                    return Optional.empty();
+                                    return Optional.of(DateTimeHelper.parse(activeTransaction.getChargingcablePluginAt()));
                                 }
 
                                 @Override
                                 public Optional<Integer> getLadestromAmpereL1() {
-                                    return Optional.empty();
+                                    return Optional.of(Integer.valueOf(activeTransaction.getCurrentChargingAmpereL1()));
                                 }
 
                                 @Override
                                 public Optional<Integer> getLadestromAmpereL2() {
-                                    return Optional.empty();
+                                    return Optional.of(Integer.valueOf(activeTransaction.getCurrentChargingAmpereL2()));
                                 }
 
                                 @Override
                                 public Optional<Integer> getLadestromAmpereL3() {
-                                    return Optional.empty();
+                                    return Optional.of(Integer.valueOf(activeTransaction.getCurrentChargingAmpereL3()));
                                 }
                             });
                         }
