@@ -243,10 +243,10 @@ public class DetailServlet extends HttpServlet {
                     result += addLine("Connector Status", cpStatus.getConnectorStatus().name());
                     result += addLine("Charging State", (cpStatus.getChargingState() == null ? "" : cpStatus.getChargingState().name()));
                     if (evMitLaufendenLadevorgangForLadestation.isPresent()) {
-                        result += addLine("<b>Electric Vehicle</b>", evMitLaufendenLadevorgangForLadestation.get().getStammdatenFahrzeug().getKennzeichen() +
+                        result += addLine("Connected EV", evMitLaufendenLadevorgangForLadestation.get().getStammdatenFahrzeug().getKennzeichen() +
                                 " (" + evMitLaufendenLadevorgangForLadestation.get().getSoC() + "%)");
                     } else {
-                        result += addLine("<b>Electric Vehicle</b>", "-");
+                        result += addLine("Connected EV", "-");
                     }
                     result += addLine("Current charged energy", cpStatus.getCurrentChargedEnergy());
                     result += addLine("Current charging Ampere (L1 / L2 / L3)",
