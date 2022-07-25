@@ -250,12 +250,12 @@ public class DetailServlet extends HttpServlet {
                         evSoc = ev.getSoC() + "%";
                     }
                     result += addLine("EV Nummernschild", evNummernschild);
-                    result += addLine("EV Ladestand:", evSoc);
-                    result += addLine("Geladene Energie aktive Ladetransaktion", cpStatus.getCurrentChargedEnergy());
+                    result += addLine("EV Ladestand", evSoc);
+                    result += addLine("Geladene Energie aktive Ladetransaktion", cpStatus.getCurrentChargedEnergy() + "W");
                     result += addLine("Ladestrom aktive Ladetransaktion (L1 / L2 / L3)",
-                            cpStatus.getCurrentChargingAmpereL1() +
-                            " / " + cpStatus.getCurrentChargingAmpereL2() +
-                            " / " + cpStatus.getCurrentChargingAmpereL3());
+                            cpStatus.getCurrentChargingAmpereL1() + "A / " +
+                            cpStatus.getCurrentChargingAmpereL2() + "A / " +
+                            cpStatus.getCurrentChargingAmpereL3() + "A");
                     if (NO_ERROR.equals(cpStatus.getErrorCode())) {
                         if (!NO_INFO.equals(cpStatus.getErrorInfo())) {
                             result += addLine("Information", cpStatus.getErrorInfo());
