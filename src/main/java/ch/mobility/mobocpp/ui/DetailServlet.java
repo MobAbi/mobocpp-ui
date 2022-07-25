@@ -239,17 +239,20 @@ public class DetailServlet extends HttpServlet {
                     LadestatusStandortCalculator.get().getEvMitLaufendenLadevorgangForLadestation(csStatusForIdResponse.getStatus().getId());
             for (CPStatus cpStatus : status.getCPStatusList()) {
                 if (cpStatus.getConnectorId() != 0) {
-                    result += addLine("<b>Connector</b>", cpStatus.getConnectorId());
-                    result += addLine("Connector Status", cpStatus.getConnectorStatus().name());
-                    result += addLine("Charging State", (cpStatus.getChargingState() == null ? "" : cpStatus.getChargingState().name()));
+                    result += addLine("<b>Ladepunkt</b>", cpStatus.getConnectorId());
+                    result += addLine("Status Ladepunkt", cpStatus.getConnectorStatus().name());
+                    result += addLine("Status Ladetransaktion", (cpStatus.getChargingState() == null ? "-" : cpStatus.getChargingState().name()));
+                    String evNummernschild = "-";
+                    String evSoc = "-";
                     if (evMitLaufendenLadevorgangForLadestation.isPresent()) {
-                        result += addLine("Connected EV", evMitLaufendenLadevorgangForLadestation.get().getStammdatenFahrzeug().getKennzeichen() +
-                                " (" + evMitLaufendenLadevorgangForLadestation.get().getSoC() + "%)");
-                    } else {
-                        result += addLine("Connected EV", "-");
+                        final EvMitLaufendenLadevorgang ev = evMitLaufendenLadevorgangForLadestation.get();
+                        evNummernschild = ev.getStammdatenFahrzeug().getKennzeichen();
+                        evSoc = ev.getSoC() + "%";
                     }
-                    result += addLine("Current charged energy", cpStatus.getCurrentChargedEnergy());
-                    result += addLine("Current charging Ampere (L1 / L2 / L3)",
+                    result += addLine("EV Nummernschild", evNummernschild);
+                    result += addLine("EV Ladestand:", evSoc);
+                    result += addLine("Geladene Energie aktive Ladetransaktion", cpStatus.getCurrentChargedEnergy());
+                    result += addLine("Ladestrom aktive Ladetransaktion (L1 / L2 / L3)",
                             cpStatus.getCurrentChargingAmpereL1() +
                             " / " + cpStatus.getCurrentChargingAmpereL2() +
                             " / " + cpStatus.getCurrentChargingAmpereL3());
@@ -258,8 +261,8 @@ public class DetailServlet extends HttpServlet {
                             result += addLine("Information", cpStatus.getErrorInfo());
                         }
                     } else {
-                        result += addLine("Error code", cpStatus.getErrorCode());
-                        result += addLine("Error Information", cpStatus.getErrorInfo());
+                        result += addLine("Fehlercode", cpStatus.getErrorCode());
+                        result += addLine("Information", cpStatus.getErrorInfo());
                     }
                 }
             }
@@ -299,10 +302,10 @@ public class DetailServlet extends HttpServlet {
                                 " <thead>\n" +
                                 "   <tr>\n" +
                                 "     <th>Zeitstempel</th>\n" +
-                                "     <th>Connector Status</th>\n" +
-                                "     <th>Charging State</th>\n" +
-                                "     <th>Error code</th>\n" +
-                                "     <th>Error info</th>\n" +
+                                "     <th>Status Ladepunkt</th>\n" +
+                                "     <th>Status Ladetransaktion</th>\n" +
+                                "     <th>Fehlercode</th>\n" +
+                                "     <th>Information</th>\n" +
                                 "  </tr>\n" +
                                 "  </thead>\n" +
                                 "  <tbody>\n";
